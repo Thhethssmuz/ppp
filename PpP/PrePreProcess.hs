@@ -1,18 +1,13 @@
 module PpP.PrePreProcess where
 
 import Text.ParserCombinators.Parsec
-
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.State
-
+import Text.Pandoc.Shared (splitBy)
 import System.Directory (doesFileExist)
-
 import Data.Maybe (fromJust)
 import Data.List (intersperse, elemIndex, groupBy)
 import Data.Char (isSpace, toLower)
-import Data.List.Split (splitOn)
-
-
 
 data Unprocessed = Markdown String
                  | Macro String String
@@ -49,13 +44,11 @@ unprocessed :: Parser Unprocessed
 unprocessed = macro <|> markdown
 
 
-
 trim :: String -> String
 trim = f . f where f = reverse . dropWhile isSpace
 
 parseList :: String -> [String]
-parseList = filter (not . null) . map trim . concatMap lines . splitOn ";"
-
+parseList = filter (not . null) . map trim . concatMap lines . splitBy ";"
 
 
 unlines' :: [String] -> String
@@ -72,7 +65,6 @@ groupUnprocessed =
     . map unlines'
     . groupBy f
     . lines
-
 
 
 parseUnprocessed :: String -> StateT [Unprocessed] IO ()
@@ -94,7 +86,6 @@ addUnprocessed (Macro k v) = case k of
 addUnprocessed dp = modify (++ [dp])
 
 
-
 includeFile :: FilePath -> StateT [Unprocessed] IO ()
 includeFile fp = do
   ex <- lift . doesFileExist $ fp
@@ -109,7 +100,7 @@ includeFile fp = do
 getType :: [Unprocessed] -> String
 getType ((Macro "type" x):xs) = map toLower x
 getType (x:xs) = getType xs
-getType [] = "%\n%" -- just something that is unparsable
+getType [] = " " -- just something that is unparsable
 
 prePreProcess :: FilePath -> IO [Unprocessed]
 prePreProcess fp = execStateT (includeFile fp) []
