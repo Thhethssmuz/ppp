@@ -1,0 +1,502 @@
+% ------------------------ D O C U M E N T   C L A S S ------------------------
+  \RequirePackage[hyphens]{url}
+
+  \documentclass[
+    fontsize=$if(font-size)$$font-size$$else$12pt$endif$,
+    DIV=$if(page-div)$$page-div$$else$10$endif$,
+    BCOR=0mm,
+    oneside,
+    abstract=on,
+    appendixprefix=true]{scrreprt}
+
+% ----------------------------- F O N T  S P E C ------------------------------
+  \usepackage[T1]{fontenc}
+  \usepackage{lmodern}
+  \usepackage{amssymb,amsmath}
+  \usepackage{fixltx2e}
+  \IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+  \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+  \usepackage{mathspec} % imports fontspec
+  \usepackage{xltxtra,xunicode}
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{â‚¬}
+  \setmainfont{$if(main-font)$$main-font$$else$Open Sans$endif$}
+  \setsansfont{$if(sans-font)$$sans-font$$else$Open Sans$endif$}
+  \setmonofont{$if(mono-font)$$mono-font$$else$Ubuntu Mono$endif$}
+  %$if(math-font)$\setmathfont{$math-font$Gotham Book}$endif$
+  \usepackage{pifont}
+
+% ---------------- P A G E   H E A D E R   A N D   F O O T E R ----------------
+  \usepackage{fancyhdr}
+  \usepackage{lastpage}
+  \newcommand\lastpage{\pageref{LastPage}}
+  \pagestyle{fancy}
+  \pagenumbering{arabic}
+
+  \usepackage{ifthen}
+  \ifthenelse{\equal{$page-header-left$$page-header-centre$$page-header-right$}{}}
+    {\renewcommand{\headrulewidth}{0pt}}{}
+
+  \fancypagestyle{plain}{
+    \renewcommand{\headrulewidth}{0pt}
+    \fancyhf{}
+    \fancyhead[L]{}
+    \fancyhead[C]{}
+    \fancyhead[R]{}
+    \fancyfoot[L]{$page-footer-left$}
+    \fancyfoot[C]{$if(page-footer-centre)$$page-footer-centre$$else$\itshape \thepage$endif$}
+    \fancyfoot[R]{$page-footer-right$}
+  }
+  \lhead{$page-header-left$}
+  \chead{$page-header-centre$}
+  \rhead{$page-header-right$}
+  \lfoot{$page-footer-left$}
+  \cfoot{$if(page-footer-centre)$$page-footer-centre$$else$\itshape \thepage$endif$}
+  \rfoot{$page-footer-right$}
+
+% ---------------------------------- M I S C ----------------------------------
+  \usepackage{listings}% ?
+  \usepackage{longtable,booktabs}% tables
+  \usepackage{lipsum}% for testing
+
+% ------------------------------ L A N G U A G E ------------------------------
+  $if(lang)$
+    \usepackage{polyglossia}
+    \setmainlanguage{$lang$}
+  $endif$
+
+  \AtBeginDocument{
+
+    $if(i-will-ignore-this-for-now)$
+    % Norwegian, does not at all have sensible defaults!
+    \defcopappendixname{norsk}{\abstractname}{Abstrakt}
+    \defcopappendixname{norsk}{\appendixname}{Vedlegg}
+    \defcopappendixname{norsk}{\appendixpagename}{Vedlegg}
+    \defcopappendixname{norsk}{\appendixtocname}{Vedlegg}
+    \defcopappendixname{norsk}{\bibname}{Bibliografi}
+    \defcopappendixname{norsk}{\chaptername}{Kapittel}
+    \defcopappendixname{norsk}{\contentsname}{Innhold}
+    \defcopappendixname{norsk}{\figurename}{Figur}
+    \defcopappendixname{norsk}{\listfigurename}{Figurer}
+    \defcopappendixname{norsk}{\listtablename}{Tabeller}
+    \defcopappendixname{norsk}{\notesname}{Noter}
+    \defcopappendixname{norsk}{\pagename}{Side}
+    \defcopappendixname{norsk}{\refname}{Referanser}
+    \defcopappendixname{norsk}{\tablename}{Tabell}
+
+    % This is also Norwegian, in case you wandered...
+    \defcopappendixname{nynorsk}{\abstractname}{Abstrakt}
+    \defcopappendixname{nynorsk}{\appendixname}{Vedlegg}
+    \defcopappendixname{nynorsk}{\appendixpagename}{Vedlegg}
+    \defcopappendixname{nynorsk}{\appendixtocname}{Vedlegg}
+    \defcopappendixname{nynorsk}{\bibname}{Bibliografi}
+    \defcopappendixname{nynorsk}{\chaptername}{Kapittel}
+    \defcopappendixname{nynorsk}{\contentsname}{Innhold}
+    \defcopappendixname{nynorsk}{\figurename}{Figur}
+    \defcopappendixname{nynorsk}{\listfigurename}{Figurar}
+    \defcopappendixname{nynorsk}{\listtablename}{Tabellar}
+    \defcopappendixname{nynorsk}{\notesname}{Notar}
+    \defcopappendixname{nynorsk}{\pagename}{Side}
+    \defcopappendixname{nynorsk}{\refname}{Referansar}
+    \defcopappendixname{nynorsk}{\tablename}{Tabell}
+    $endif$
+
+    $if(lang)$
+      $if(abstractname)$\renewcommand\abstractname{$abstractname$}$endif$
+      $if(appendixname)$\renewcommand\appendixname{$appendixname$}$endif$
+      $if(appendixpagename)$\renewcommand\appendixpagename{$appendixpagename$}$endif$
+      $if(appendixtocname)$\renewcommand\appendixtocname{$appendixtocname$}$endif$
+      $if(bibname)$\renewcommand\bibname{$bibname$}$endif$
+      $if(chaptername)$\renewcommand\chaptername{$chaptername$}$endif$
+      $if(contentsname)$\renewcommand\contentsname{$contentsname$}$endif$
+      $if(figurename)$\renewcommand\figurename{$figurename$}$endif$
+      $if(listfigurename)$\renewcommand\listfigurename{$listfigurename$}$endif$
+      $if(listtablename)$\renewcommand\listtablename{$listtablename$}$endif$
+      $if(notesname)$\renewcommand\notesname{$notesname$}$endif$
+      $if(pagename)$\renewcommand\pagename{$pagename$}$endif$
+      $if(refname)$\renewcommand\refname{$refname$}$endif$
+      $if(tablename)$\renewcommand\tablename{$tablename$}$endif$
+    $endif$
+  }
+
+% ------------------- L E N G T H S   A N D   I N D E N T S -------------------
+  \setlength{\parindent}{0pt}
+  \setlength{\parskip}{6pt plus 2pt minus 1pt}
+  \setlength{\emergencystretch}{3em}
+
+% ---------------------- S E C T I O N   S E T T I N G S ----------------------
+  \usepackage[]{fp}
+
+  \newcommand\resetsecnumdepth{
+    \FPeval{\result}{clip($if(number-sections)$$number-sections$$else$3$endif$-1)}
+    \setcounter{secnumdepth}{\result}
+  }
+
+  % inline section number function
+  \newcommand\numbersections[1]{
+    \FPeval{\result}{clip(#1 - 1)}
+    \setcounter{secnumdepth}{\result}
+  }
+
+% --------------------------------- L I N K S ---------------------------------
+  % Supposedly unicode breakes with xetex?
+  \usepackage[setpagesize=false,unicode=false,xetex]{hyperref}
+  \hypersetup{
+    breaklinks=true,
+    bookmarks=true,
+    colorlinks=true,
+    urlcolor=blue,
+    linkcolor=black,
+    pdfborder={0 0 0}
+  }
+
+  \let\oldhref=\href
+
+  $if(links-as-notes)$
+    \renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+  $endif$
+
+% -------------------------------- I M A G E S --------------------------------
+  \usepackage{multicol}
+  \usepackage{graphicx}
+  \usepackage{float}
+  \usepackage{wrapfig}
+  \usepackage{caption}
+  \usepackage{subcaption}
+
+% ----------- T I T L E   P A G E   A N D   P D F   M E T A D A T A -----------
+  \usepackage{bookmark}
+  \hypersetup{
+    pdfcreator={ppp},
+    pdfauthor={$for(author)$$author$$sep$ and $endfor$},
+    pdfsubject={$subject$},
+    pdftitle={$title$},
+    pdfkeywords={$for(keywords)$$keywords$$sep$, $endfor$}
+  }
+
+  \subject{$subject$}
+  \title{$title$}
+  \subtitle{$subtitle$}
+  \author{$for(author)$$author$$sep$ and $endfor$}
+  \date{$date$}
+  \publishers{$publisher$}
+
+% ------------------------------ A B S T R A C T ------------------------------
+  \let\savedabstract=\abstract
+  \renewcommand\abstract[1]{
+    \pdfbookmark[0]{\abstractname}{\abstractname}
+    \begin{savedabstract}
+
+      #1
+
+      $if(keywords)$
+        \itshape{Keywords:} $for(keywords)$$keywords$$sep$, $endfor$
+      $endif$
+    \end{savedabstract}
+  }
+
+% ---------------- T A B L E   O F   C O N T E N T   E T C . . ----------------
+  % pre-toc
+  \setcounter{secnumdepth}{-1}
+  \addtocontents{toc}{\protect\setcounter{tocdepth}{-1}}
+
+  % add toc, lof and lot as a pdf bookmark
+  \makeatletter
+  \BeforeTOCHead{%
+    \cleardoublepage
+      \edef\@tempa{%
+        \noexpand\pdfbookmark[0]{\list@fname}{\@currext}%
+      }\@tempa
+  }
+  \makeatother
+
+  \newcommand\toc{
+    \resetsecnumdepth
+    \bookmarksetup{startatroot}
+    \addtocontents{toc}{\protect\setcounter{tocdepth}{$if(toc-depth)$$toc-depth$$else$3$endif$}}
+    \tableofcontents
+  }
+
+  \newcommand\lof{
+    $if(toc)$
+      \bookmarksetupnext{level=1}
+    $endif$
+    \listoffigures
+  }
+
+  \newcommand\lot{
+    $if(toc)$
+      \bookmarksetupnext{level=1}
+    $endif$
+    \listoftables
+  }
+
+% ---------------------------- A P P E N D I C E S ----------------------------
+  \usepackage[titletoc,title]{appendix}
+  \renewcommand\appendices{
+    \bookmarksetupnext{level=-1}
+    \cleardoublepage
+    \appendix
+    $if(appendix-page)$
+      \appendixpage
+    $endif$
+    \addappheadtotoc
+    \addtocontents{toc}{\protect\setcounter{tocdepth}{$if(toc-apxdepth)$$toc-apxdepth$$else$2$endif$}}
+  }
+
+% -------------------------- B I B L I O G R A P H Y --------------------------
+  \renewcommand\bibliography[1]{
+    \bookmarksetup{startatroot}
+
+    \chapter*{\bibname}
+    \addcontentsline{toc}{chapter}{\bibname}
+
+    % hack for bib listings to indent
+    \setlength{\parindent}{-0.2in}
+    \setlength{\leftskip}{0.2in}
+    \setlength{\parskip}{8pt}\noindent
+
+    % show urls in bibliography as links and not as a footnote
+    \let\href=\oldhref
+
+    #1
+  }
+
+% --------------------------------- N O T E S ---------------------------------
+  % NOTE: if links-as-notes is on do not try to put a link in an endnote!
+
+  $if(wikiref)$
+
+    \newcommand\notes[1]{
+      \bookmarksetup{startatroot}
+      \chapter*{\notesname}
+
+    }
+
+  $else$
+
+    \usepackage{fancyvrb}
+    \VerbatimFootnotes
+
+    % -- footnote style
+    %\makeatletter
+    %\renewcommand\@makefntext[1]%
+    %  {\noindent\makebox[0pt][r]{\textsuperscript{\@thefnmark}\,}#1}
+    %\makeatother
+
+
+    % -- hyperendnotes --
+    % taken from hyperendnote.sty by Ulrich Dirr
+      \usepackage{endnotes}
+      \makeatletter%
+      \newif\ifenotelinks%
+      \newcounter{Hendnote}%
+      \let\savedhref\href%
+      \let\savedurl\url%
+      \def\endnotemark{%
+        \@ifnextchar[\@xendnotemark{%
+          \stepcounter{endnote}%
+          \protected@xdef\@theenmark{\theendnote}%
+          \protected@xdef\@theenvalue{\number\c@endnote}%
+          \@endnotemark%
+        }%
+      }%
+      \def\@xendnotemark[#1]{%
+        \begingroup\c@endnote#1\relax%
+        \unrestored@protected@xdef\@theenmark{\theendnote}%
+        \unrestored@protected@xdef\@theenvalue{\number\c@endnote}%
+        \endgroup%
+        \@endnotemark%
+      }%
+      \def\endnotetext{%
+        \@ifnextchar[\@xendnotenext{%
+          \protected@xdef\@theenmark{\theendnote}%
+          \protected@xdef\@theenvalue{\number\c@endnote}%
+          \@endnotetext%
+        }%
+      }%
+      \def\@xendnotenext[#1]{%
+        \begingroup%
+        \c@endnote=#1\relax%
+        \unrestored@protected@xdef\@theenmark{\theendnote}%
+        \unrestored@protected@xdef\@theenvalue{\number\c@endnote}%
+        \endgroup%
+        \@endnotetext%
+      }%
+      \def\endnote{%
+        \@ifnextchar[\@xendnote{%
+          \stepcounter{endnote}%
+          \protected@xdef\@theenmark{\theendnote}%
+          \protected@xdef\@theenvalue{\number\c@endnote}%
+          \@endnotemark\@endnotetext%
+        }%
+      }%
+      \def\@xendnote[#1]{%
+        \begingroup%
+        \c@endnote=#1\relax%
+        \unrestored@protected@xdef\@theenmark{\theendnote}%
+        \unrestored@protected@xdef\@theenvalue{\number\c@endnote}%
+        \show\@theenvalue%
+        \endgroup%
+        \@endnotemark\@endnotetext%
+      }%
+      \def\@endnotemark{%
+        \leavevmode%
+        \ifhmode%
+          \edef\@x@sf{\the\spacefactor}\nobreak%
+        \fi%
+          \ifenotelinks%
+          \expandafter\@firstofone%
+        \else%
+          \expandafter\@gobble%
+        \fi%
+        {%
+          \Hy@raisedlink{%
+            \hyper@@anchor{Hendnotepage.\@theenvalue}{\empty}%
+          }%
+        }%
+        \hyper@linkstart{link}{Hendnote.\@theenvalue}%
+        \textsuperscript{\makeenmark}% <- reference type mark
+        \hyper@linkend%
+        \ifhmode%
+          \spacefactor\@x@sf%
+        \fi%
+        \relax%
+      }%
+      \long\def\@endnotetext#1{%
+        \if@enotesopen%
+        \else%
+          \@openenotes%
+        \fi%
+        \immediate\write\@enotes{%
+          \@doanenote{\@theenmark}{\@theenvalue}%
+        }%
+        \begingroup%
+        \def\next{#1}%
+        \newlinechar='40%
+        \immediate\write\@enotes{\meaning\next}%
+        \endgroup%
+        \immediate\write\@enotes{%
+          \@endanenote%
+        }%
+      }%
+      \def\theendnotes{%
+        \immediate\closeout\@enotes%
+        \global\@enotesopenfalse%
+        \begingroup%
+        \makeatletter%
+        \edef\@tempa{`\string>}%
+        \ifnum\catcode\@tempa=12%
+          \let\@ResetGT\relax%
+        \else%
+          \edef\@ResetGT{\noexpand\catcode\@tempa=\the\catcode\@tempa}%
+          \@makeother\>%
+        \fi%
+        \def\@doanenote##1##2##3>{%
+          \def\@theenmark{##1}%
+          \def\@theenvalue{##2}%
+          \par%
+          \begingroup%
+          \def\href{\expandafter\savedhref}%
+          \def\url{\expandafter\savedurl}%
+          \@ResetGT%
+          \edef\@currentlabel{\csname p@endnote\endcsname\@theenmark}%
+          \enoteformat%
+        }%
+        \def\@endanenote{%
+          \par\endgroup%
+        }%
+        \enoteheading%
+        \enotesize%
+        \input{\jobname.ent}%
+        \endgroup%
+      }%
+      \def\enoteformat{%
+        \rightskip\z@%
+        \leftskip\z@%
+        \parindent=0cm%
+        \leftskip=1cm%
+        \leavevmode\llap{%
+          \setcounter{Hendnote}{\@theenvalue}%
+          \addtocounter{Hendnote}{-1}%
+          \refstepcounter{Hendnote}%
+          \ifenotelinks%
+          \expandafter\@secondoftwo%
+          \else%
+            \expandafter\@firstoftwo%
+          \fi%
+          {\@firstofone}%
+          {\hyperlink{Hendnotepage.\@theenvalue}}%
+          {\makeenmark.}% <- note type mark
+          \hspace{0.5em}%
+        }%
+      }%
+      \makeatother%
+      \enotelinkstrue%
+    % -- end hyperendnotes --
+
+
+    \makeatletter
+    \renewcommand\makeenmark{\theenmark}
+    \let\latexchapter\chapter
+    \renewcommand\enoteheading{
+      \setcounter{secnumdepth}{-2}
+      \latexchapter*{\notesname}
+      \addcontentsline{toc}{chapter}{\notesname}
+      \mbox{}\par\vskip-\baselineskip
+      \let\@afterindentfalse\@afterindenttrue
+    }
+    \def\enotedivision#1#2{\@ifnextchar\enotedivision{}{#1{#2}}}
+    \makeatother
+
+    $if(grouped-notes)$
+    \usepackage{xparse}
+    \RenewDocumentCommand{\chapter}{som}{%
+      \IfBooleanTF{#1}{%
+        \latexchapter*{#3}%
+        \setcounter{endnote}{0}%
+        \addtoendnotes{%
+          \noexpand\enotedivision{\noexpand\subsection}{\unexpanded{#3}}%
+        }%
+      }{%
+        \IfNoValueTF{#2}{\latexchapter{#3}}{\latexchapter[#2]{#3}}%
+        \addtoendnotes{%
+          \noexpand\enotedivision{\noexpand\subsection*}%
+          {\unexpanded{#3}}% <- chapter mark
+        }%
+      }%
+    }%
+    $endif$
+
+    \newcommand\notes{
+      \bookmarksetup{startatroot}
+
+      \begingroup
+      \parindent 0pt
+      \parskip 0pt
+      \def\enotesize{\normalsize}
+      \addtoendnotes{\unexpanded{\enotedivision{}{}}}
+      \theendnotes
+      \endgroup
+
+      %\setcounter{endnote}{0}% messes up the hyper-refs, ok for print though
+      \resetsecnumdepth
+    }
+
+    $if(notes-chapter)$
+      \let\footnote=\endnote
+    $endif$
+
+  $endif$
+
+% ------------------------------ D O C U M E N T ------------------------------
+\begin{document}
+
+$if(title)$
+  \pdfbookmark[-1]{$title$}{$title$}
+  \maketitle
+$endif$
+
+$body$
+
+\end{document}
