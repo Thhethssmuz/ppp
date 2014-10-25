@@ -1,17 +1,15 @@
 module PpP.PrePreProcess where
 
+import PpP.Shared
+
 import Text.ParserCombinators.Parsec
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.State
-import Text.Pandoc.Shared (splitBy)
+
 import System.Directory (doesFileExist)
-import Data.Maybe (fromJust)
-import Data.List (intersperse, elemIndex, groupBy)
+import Data.List (intersperse, groupBy)
 import Data.Char (isSpace, toLower)
 
-data Unprocessed = Markdown String
-                 | Macro String String
-                 deriving (Show)
 
 wordChar = ['0'..'9'] ++ ['A'..'Z'] ++ ['a'..'z'] ++ "-_"
 
@@ -44,13 +42,6 @@ unprocessed :: Parser Unprocessed
 unprocessed = macro <|> markdown
 
 
-trim :: String -> String
-trim = f . f where f = reverse . dropWhile isSpace
-
-parseList :: String -> [String]
-parseList = filter (not . null) . map trim . concatMap lines . splitBy ";"
-
-
 unlines' :: [String] -> String
 unlines' = foldl1 (\x y -> x++'\n':y)
 
@@ -69,11 +60,12 @@ groupUnprocessed =
 
 parseUnprocessed :: String -> StateT [Unprocessed] IO ()
 parseUnprocessed s = case parse unprocessed "" s of
-  Left err -> do
-              lift . putStrLn $ "ppp: failed to parse macro \n" ++ trim s
-              lift . putStrLn . concat . intersperse " " . lines . show $ err
-              lift . putStrLn $ ""
+  Left err -> addUnprocessed . Markdown . pppErr $ 
+              [("macro", trim s), ("err", prettify err)]
+
   Right dp -> addUnprocessed dp
+
+  where prettify = concat . intersperse "\n  " . lines . show
 
 addUnprocessed :: Unprocessed -> StateT [Unprocessed] IO ()
 addUnprocessed (Macro k v) = case k of
@@ -88,19 +80,31 @@ addUnprocessed dp = modify (++ [dp])
 
 includeFile :: FilePath -> StateT [Unprocessed] IO ()
 includeFile fp = do
-  ex <- lift . doesFileExist $ fp
-  if   not ex
-  then lift . putStrLn $ "ppp: file " ++ fp ++ " does not exist"
+  exist <- lift . doesFileExist $ fp
+
+  if   not exist
+  then addUnprocessed . Markdown . pppErr $ [("file", fp)]
   else do 
-    file <- lift . readFile $ fp
-    modify (++ [Markdown "\n\n"])
-    mapM_ parseUnprocessed . groupUnprocessed $ file
-    modify (++ [Markdown "\n\n"])
+       file <- lift . readFile $ fp
+       modify (++ [Markdown "\n\n"])
+       mapM_ parseUnprocessed . groupUnprocessed $ file
+       modify (++ [Markdown "\n\n"])
+
+prePreProcess :: FilePath -> IO [Unprocessed]
+prePreProcess fp = execStateT (includeFile fp) []
+
 
 getType :: [Unprocessed] -> String
 getType ((Macro "type" x):xs) = map toLower x
 getType (x:xs) = getType xs
-getType [] = " " -- just something that is unparsable
+getType [] = "default"
 
-prePreProcess :: FilePath -> IO [Unprocessed]
-prePreProcess fp = execStateT (includeFile fp) []
+replaceType :: Unprocessed -> [Unprocessed] -> [Unprocessed]
+replaceType r ((Macro "type" _):xs) = r:xs
+replaceType r (x:xs) = x : replaceType r xs
+replaceType _ [] = []
+
+filterType :: [Unprocessed] -> [Unprocessed]
+filterType = filter f
+  where f (Macro "type" _) = False
+        f _ = True

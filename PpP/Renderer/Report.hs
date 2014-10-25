@@ -1,7 +1,7 @@
 module PpP.Renderer.Report (renderReport) where
 
 import PpP.Filter
-import PpP.PrePreProcess
+import PpP.Shared
 import PpP.Renderer.Shared
 
 import Text.Pandoc
@@ -17,19 +17,19 @@ import Data.Char (toLower)
 import System.Exit
 
 
-configure :: Unprocessed -> StateT PpP IO ()
+configure :: Unprocessed -> State PpP ()
 configure (Markdown s) = add "" s
 configure (Macro k v)  = case k of
   "type"            -> return ()
 
-  _              -> lift . putStrLn $ "ppp: unknown macro " ++ k
+  _                 -> add "err" . pppErr $ [("unknown", k)]
 
 
 renderReport :: [Unprocessed] -> FilePath -> IO ()
 renderReport doc out = do
   template <- readFile "tex/report.tex"
 
-  ppp      <- execStateT (mapM_ configure doc) emptyPpP{
+  let ppp   = execState (mapM_ configure doc) emptyPpP{
                 reader = def{
                   readerSmart = True,
                   readerStandalone = True,
@@ -48,10 +48,12 @@ renderReport doc out = do
             . readMarkdown (reader ppp)
             $ document ppp
 
+  printErrors pandoc
 
   putStrLn $ "rendering " ++ out
 
 
+  {-
   pdf <- makePDF "xelatex" writeLaTeX (writer ppp) pandoc
 
   case pdf of
@@ -59,3 +61,4 @@ renderReport doc out = do
                 BS.putStrLn err
                 exitFailure
     Right bs -> BS.writeFile out bs
+  -}

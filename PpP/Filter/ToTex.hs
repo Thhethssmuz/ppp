@@ -1,11 +1,11 @@
 module PpP.Filter.ToTex (toTex) where
 
-import Text.Pandoc
+import Text.Pandoc.Definition
 import Text.Pandoc.Walk
 
 pppToLaTeX :: Block -> Block
-pppToLaTeX (Div ("PpP-Fn", [c], _) i) = Div ("",[],[]) $ [
-  RawBlock (Format "tex") $ "\\" ++ c ++ "{"] ++ i ++ [
+pppToLaTeX (Div (_, ["ppp-fn"], [("name", name)]) inner) = Div ("",[],[]) $ [
+  RawBlock (Format "tex") $ "\\" ++ name ++ "{"] ++ inner ++ [
   RawBlock (Format "tex") "}"]
 pppToLaTeX x = x
 

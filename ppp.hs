@@ -1,30 +1,33 @@
 module Main where
 
+import PpP.Shared
 import PpP.PrePreProcess
 import PpP.Renderer
 
-import System.FilePath.Posix
 import System.Directory (doesFileExist)
+import System.FilePath
 import System.Exit
 
 render :: [Unprocessed] -> FilePath -> IO ()
 render doc inn = case getType doc of
-  "report" -> renderReport doc $ replaceExtension inn "pdf"
-  "%\n%"   -> renderReport doc $ replaceExtension inn "pdf"
-  other    -> do
-              putStrLn $ "ppp: unknown document type " ++ other
-              renderReport doc $ replaceExtension inn "pdf"
+  "report"  -> renderReport (filterType doc) $ replaceExtension inn "pdf"
+  "default" -> renderReport (filterType doc) $ replaceExtension inn "pdf"
+  unknown   -> renderReport (
+                   filterType
+                 . replaceType (Markdown $ pppErr [("type", unknown)])
+                 $ doc
+               ) $ replaceExtension inn "pdf"
 
 main :: IO ()
 main = do
   let fp = "test/test.md"
 
-  ex <- doesFileExist fp
-  case ex of
-    False -> do
-             putStrLn $ "ppp: file " ++ fp ++ " does not exist"
-             exitFailure
-    True  -> return ()
+  exist <- doesFileExist fp
+  if exist
+  then return ()
+  else do
+       putStrLn $ "ppp: unable to render " ++ fp ++ ", file not found"
+       exitFailure
 
   doc <- prePreProcess fp
   render doc fp
