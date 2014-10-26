@@ -25,9 +25,6 @@ getBlock (Div (_, ["ppp-err"], [("type", doctype)]) _) =
   ["ppp: unknown document type " ++ doctype]
 getBlock _ = []
 
-divs :: Block -> [Block]
-divs d@(Div _ _) = [d]
-divs _ = []
 
 printErrors :: Pandoc -> IO ()
 printErrors doc = do
