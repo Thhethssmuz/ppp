@@ -99,12 +99,10 @@ getType ((Macro "type" x):xs) = map toLower x
 getType (x:xs) = getType xs
 getType [] = "default"
 
-replaceType :: Unprocessed -> [Unprocessed] -> [Unprocessed]
-replaceType r ((Macro "type" _):xs) = r:xs
-replaceType r (x:xs) = x : replaceType r xs
-replaceType _ [] = []
-
-filterType :: [Unprocessed] -> [Unprocessed]
-filterType = filter f
-  where f (Macro "type" _) = False
-        f _ = True
+rmType :: Bool -> [Unprocessed] -> [Unprocessed]
+rmType unknown ((Macro "type" x):xs) = err ++ map mi xs
+  where err = if unknown then [Markdown $ pppErr [("type", x)]] else []
+        mi (Macro "type" _) = Markdown $ pppErr [("multiinstance", "type")]
+        mi x = x
+rmType unknown (x:xs) = x : rmType unknown xs
+rmType _ [] = []
