@@ -15,14 +15,25 @@ getInline _ = []
 getBlock :: Block -> [String]
 getBlock (Div (_, ["ppp-err"], [("file", fp)]) _) =
   ["ppp: file " ++ fp ++ " not found"]
+
 getBlock (Div (_, ["ppp-err"], [("macro", src), ("err", err)]) _) =
   ["ppp: unable to parse macro " ++ src ++ "\n" ++ err ++ "\n"]
+
 getBlock (Div (_, ["ppp-err"], [("multiinstance", macro)]) _) =
   ["ppp: multiple instances of macro " ++ macro]
+
+getBlock (Div (_, ["ppp-err"], [("tomanyargs", macro)]) _) =
+  ["ppp: to many arguments applied to macro " ++ macro]
+
 getBlock (Div (_, ["ppp-err"], [("unknown", macro)]) _) =
   ["ppp: unknown macro " ++ macro]
+
 getBlock (Div (_, ["ppp-err"], [("type", doctype)]) _) =
   ["ppp: unknown document type " ++ doctype]
+
+getBlock (Div (_, ["ppp-err"], [("language", lang)]) _) =
+  ["ppp: unsupported language " ++ lang]
+
 getBlock _ = []
 
 
