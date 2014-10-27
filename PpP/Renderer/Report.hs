@@ -2,6 +2,7 @@ module PpP.Renderer.Report (renderReport) where
 
 import PpP.Filter
 import PpP.Shared
+import PpP.Language
 import PpP.Renderer.Shared
 
 import Text.Pandoc
@@ -9,6 +10,7 @@ import Text.Pandoc.PDF
 import Text.Pandoc.Walk
 import Text.Highlighting.Kate.Styles
 import qualified Data.ByteString.Lazy.Char8 as BS
+import qualified Data.Map.Lazy as M
 
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.State
@@ -20,6 +22,15 @@ import System.Exit
 configure :: Unprocessed -> State PpP ()
 configure (Markdown s) = add "" s
 configure (Macro k v)  = case k of
+
+  "language"        -> let lang = map toLower v
+                           loc  = M.lookup lang languages in
+                       case loc of
+                         Nothing -> do
+                                    add "err" . pppErr $ [("language", lang)]
+                                    addOnce k ""
+                         Just l  -> addOnce k $ metaVar "lang" lang ++
+                                                metaVar "locale" l
 
   "header"          -> let hs = parseList v in
                        case length hs of
@@ -47,6 +58,7 @@ configure (Macro k v)  = case k of
 
   "subject"         -> addOnce k $ metaBlock k v
   "title"           -> addOnce k $ metaBlock k v
+  "subtitle"        -> addOnce k $ metaBlock k v
   "author"          -> addOnce k $ metaList k v
   "date"            -> addOnce k $ metaBlock k v
   "publisher"       -> addOnce k $ metaBlock k v
@@ -87,8 +99,6 @@ renderReport doc out = do
 
   putStrLn $ "rendering " ++ out
 
-
-  {-
   pdf <- makePDF "xelatex" writeLaTeX (writer ppp) pandoc
 
   case pdf of
@@ -96,4 +106,3 @@ renderReport doc out = do
                 BS.putStrLn err
                 exitFailure
     Right bs -> BS.writeFile out bs
-  -}
