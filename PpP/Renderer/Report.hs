@@ -1,5 +1,6 @@
 module PpP.Renderer.Report (renderReport) where
 
+import PpP.Err
 import PpP.Filter
 import PpP.Shared
 import PpP.Language
@@ -27,7 +28,7 @@ configure (Macro k v)  = case k of
                            loc  = M.lookup lang languages in
                        case loc of
                          Nothing -> do
-                                    add "err" . pppErr $ [("language", lang)]
+                                    add "err" . pppErr  $ "unsupported language " ++ lang
                                     addOnce k ""
                          Just l  -> addOnce k $ metaVar "lang" lang ++
                                                 metaVar "locale" l
@@ -41,8 +42,9 @@ configure (Macro k v)  = case k of
                          3 -> addOnce k $ metaVar "page-header-left"   (head hs) ++
                                           metaVar "page-header-centre" (hs !! 1) ++
                                           metaVar "page-header-right"  (last hs)
-                         _ -> do add "err" $ pppErr [("tomanyargs", k)]
-                                 configure . Macro k . unlines . take 3 $ hs
+                         _ -> do 
+                              add "err" . pppErr $ "to many arguments applied to macro " ++ k
+                              configure . Macro k . unlines . take 3 $ hs
 
   "footer"          -> let fs = parseList v in
                        case length fs of
@@ -53,8 +55,9 @@ configure (Macro k v)  = case k of
                          3 -> addOnce k $ metaVar "page-footer-left"   (head fs) ++
                                           metaVar "page-footer-centre" (fs !! 1) ++
                                           metaVar "page-footer-right"  (last fs)
-                         _ -> do add "err" $ pppErr [("tomanyargs", k)]
-                                 configure . Macro k . unlines . take 3 $ fs
+                         _ -> do 
+                              add "err" . pppErr $ "to many arguments applied to macro " ++ k
+                              configure . Macro k . unlines . take 3 $ fs
 
   "subject"         -> addOnce k $ metaBlock k v
   "title"           -> addOnce k $ metaBlock k v
@@ -81,9 +84,10 @@ configure (Macro k v)  = case k of
                                       metaVar "grouped-notes" "true"
                          "wikiref" -> metaVar "wikiref" "true"
                          _         -> metaVar "wikiref" "true" ++
-                                      pppErr [("unknownarg", v')]
+                                      pppErr ("unknown argument " ++ v' ++
+                                              " applied to macro notes")
 
-  _                 -> add "err" . pppErr $ [("unknown", k)]
+  _                 -> add "err" . pppErr $ "unknown macro " ++ k
 
 
 renderReport :: [Unprocessed] -> FilePath -> IO ()

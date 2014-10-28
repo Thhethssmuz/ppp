@@ -35,7 +35,7 @@ add k v = do
 addOnce :: String -> String -> State PpP ()
 addOnce k v = do
   c <- counter k
-  if c > 0 then add "err" $ pppErr [("multiinstance", k)]
+  if c > 0 then add "err" . pppErr $ "multiple instances of macro " ++ k
            else add k v
 
 addOnce' :: String -> String -> State PpP ()

@@ -16,9 +16,8 @@ parseList :: String -> [String]
 parseList = filter (not . null) . map trim . concatMap lines . splitBy (==';')
 
 
-pppErr :: [(String, String)] -> String
-pppErr kv = "\n<div class=\"ppp-err\"" ++ attrs ++ "></div>\n\n"
-  where attrs = concatMap (\(k,v) -> " " ++ k ++ "=\"" ++ v ++ "\"") kv
+pppErr :: String -> String
+pppErr err = "\n<div class=\"ppp-err\" err=\"" ++ err ++ "\"></div>\n\n"
 
 inlineFunc :: String -> String -> String
 inlineFunc name block = 

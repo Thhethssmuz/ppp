@@ -61,7 +61,7 @@ groupUnprocessed =
 parseUnprocessed :: String -> StateT [Unprocessed] IO ()
 parseUnprocessed s = case parse unprocessed "" s of
   Left err -> addUnprocessed . Markdown . pppErr $ 
-              [("macro", trim s), ("err", prettify err)]
+              "unable to parse macro " ++ trim s ++ "\n" ++ prettify err ++ "\n"
 
   Right dp -> addUnprocessed dp
 
@@ -83,7 +83,7 @@ includeFile fp = do
   exist <- lift . doesFileExist $ fp
 
   if   not exist
-  then addUnprocessed . Markdown . pppErr $ [("file", fp)]
+  then addUnprocessed . Markdown . pppErr $ "file " ++ fp ++ " not found"
   else do 
        file <- lift . readFile $ fp
        modify (++ [Markdown "\n\n"])
@@ -101,8 +101,9 @@ getType [] = "default"
 
 rmType :: Bool -> [Unprocessed] -> [Unprocessed]
 rmType unknown ((Macro "type" x):xs) = err ++ map mi xs
-  where err = if unknown then [Markdown $ pppErr [("type", x)]] else []
-        mi (Macro "type" _) = Markdown $ pppErr [("multiinstance", "type")]
+  where err = if unknown then [Markdown . pppErr $ "unknown document type " ++ x]
+                         else []
+        mi (Macro "type" _) = Markdown . pppErr $ "multiple instances of macro type"
         mi x = x
 rmType unknown (x:xs) = x : rmType unknown xs
 rmType _ [] = []
