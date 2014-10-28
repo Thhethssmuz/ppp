@@ -25,6 +25,9 @@ getBlock (Div (_, ["ppp-err"], [("multiinstance", macro)]) _) =
 getBlock (Div (_, ["ppp-err"], [("tomanyargs", macro)]) _) =
   ["ppp: to many arguments applied to macro " ++ macro]
 
+getBlock (Div (_, ["ppp-err"], [("unknownarg", arg), ("macro", macro)]) _) =
+  ["ppp: unknown argument " ++ arg ++ " to macro " ++ macro]
+
 getBlock (Div (_, ["ppp-err"], [("unknown", macro)]) _) =
   ["ppp: unknown macro " ++ macro]
 

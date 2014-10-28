@@ -69,6 +69,20 @@ configure (Macro k v)  = case k of
   "lof"             -> addOnce k $ inlineFunc k ""
   "lot"             -> addOnce k $ inlineFunc k ""
 
+  "appendices"      -> addOnce' k $ inlineFunc k ""
+
+  "bibliography"    -> addOnce k $ metaVar k v ++ inlineFunc k ""
+
+  "notes"           -> let v' = map toLower v in
+                       addOnce k $ inlineFunc k "" ++
+                       case v' of
+                         "simple"  -> metaVar "notes-chapter" "true"
+                         "grouped" -> metaVar "notes-chapter" "true" ++
+                                      metaVar "grouped-notes" "true"
+                         "wikiref" -> metaVar "wikiref" "true"
+                         _         -> metaVar "wikiref" "true" ++
+                                      pppErr [("unknownarg", v')]
+
   _                 -> add "err" . pppErr $ [("unknown", k)]
 
 
