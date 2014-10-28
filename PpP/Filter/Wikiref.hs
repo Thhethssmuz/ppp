@@ -3,10 +3,11 @@ module PpP.Filter.Wikiref (wikiref, wikiref') where
 import Data.Ord (comparing)
 import Data.Char (isAlphaNum, isSpace)
 import Data.List (intersperse, findIndices, sortBy)
-import Data.Maybe (fromMaybe, listToMaybe)
+import Data.Maybe (fromMaybe, listToMaybe, isJust)
 
 import Text.Pandoc
 import Text.Pandoc.Walk
+import Text.Pandoc.Shared (stringify)
 import Text.CSL.Pandoc
 import qualified Text.CSL as CSL
 
@@ -14,17 +15,16 @@ import Control.Monad.Trans.Class
 import Control.Monad.Trans.State
 import qualified Data.Map.Lazy as M
 
+import Paths_ppp
+import System.FilePath
+import System.Directory (doesFileExist)
 
 
 trimWith :: (a -> Bool) -> [a] -> [a]
 trimWith p = f . f where f = reverse . dropWhile p
 
-toString :: Inline -> String
-toString Space   = " "
-toString (Str s) = s
-
 sanitize :: [Inline] -> String
-sanitize = trimWith (not . isAlphaNum) . concatMap toString
+sanitize = trimWith (not . isAlphaNum) . concatMap stringify
 
 toCite :: Citation -> Inline
 toCite (Citation i p s m n h) = 
@@ -127,6 +127,7 @@ buildNotes ns n@(Note bs) = do
 buildNotes _ x = return x
 
 
+
 refnum :: Inline -> [Int]
 refnum (Span (rid,[],[("ref", n)]) _) =
   case take 13 rid of
@@ -149,8 +150,8 @@ orderCites x = x
 
 
 insertDiv :: String -> Block -> Block -> Block
-insertDiv s bs x@(Div (did, [s'], []) _) = 
-  if s == s' then Div (did, [s],[]) [bs]
+insertDiv s bs x@(Div (did, cs, [("name", s')]) _) = 
+  if s == s' then Div (did, cs, [("name", s)]) [bs]
              else x
 insertDiv _ _ x = x
 
@@ -164,24 +165,34 @@ citations :: Inline -> [Inline]
 citations c@(Cite _ _) = [c]
 citations _ = []
 
-referencediv :: Block -> [Block]
-referencediv (Div (_,["references"],[]) bs) = bs
-referencediv _ = []
+referenceDiv :: Block -> [Block]
+referenceDiv (Div (_,["references"],[]) bs) = bs
+referenceDiv _ = []
 
 
 
-wikiref :: CSL.Style -> [CSL.Reference] -> Pandoc -> Pandoc
-wikiref style bib pandoc@(Pandoc meta blocks) =
-  let doc       = walk splitCitation $ pandoc
-      shadowdoc = walk replNormal
-                . processCites style bib
+citeproc :: CSL.Style -> [CSL.Reference] -> Pandoc -> Pandoc
+citeproc style bib doc@(Pandoc meta _) =
+  let shadowdoc = processCites style bib
                 . Pandoc meta . (:[]) . Para
-                . walk genNormal 
                 . query citations $ doc
-
       doc'      = evalState (walkM replaceCites doc)
                 . query citations $ shadowdoc
+      biblist   = Div ("",[],[])
+                . query referenceDiv $ shadowdoc
+  in              walk (insertDiv "bibliography" biblist) doc'
 
+wikiref :: CSL.Style -> [CSL.Reference] -> Pandoc -> Pandoc
+wikiref style bib pandoc@(Pandoc meta _) =
+  let noteStyle = CSL.styleClass style == "notes"
+      doc       = walk splitCitation pandoc
+      shadowdoc = (if noteStyle then walk replNormal else id)
+                . processCites style bib
+                . Pandoc meta . (:[]) . Para
+                . (if noteStyle then walk genNormal else id)
+                . query citations $ doc
+      doc'      = evalState (walkM replaceCites doc)
+                . query citations $ shadowdoc
       notes'    = query notes doc'
       walker    = walkM (buildNotes notes') doc'
       state     = execState walker $ M.fromList []
@@ -193,40 +204,33 @@ wikiref style bib pandoc@(Pandoc meta blocks) =
                 . M.toList $ state
       biblist   = BulletList
                 . map (:[])
-                . query referencediv $ shadowdoc
-      doc'''    = walk orderCites
+                . query referenceDiv $ shadowdoc
+  in              walk orderCites
                 . walk (insertDiv "notes" noteslist)
-                . walk (insertDiv "bibliograhpy" biblist)
-                $ doc''
-  in  doc'''
+                . walk (insertDiv "bibliography" biblist) $ doc''
+
+
 
 wikiref' :: Pandoc -> IO Pandoc
-wikiref' pandoc@(Pandoc meta blocks) = do
-  let doc       = walk splitCitation $ pandoc
-  
-  shadowdoc    <- fmap (walk replNormal)
-                . processCites'
-                . Pandoc meta . (:[]) . Para
-                . walk genNormal 
-                . query citations $ doc
+wikiref' pandoc@(Pandoc meta _) = do
+  defcsl  <- getDataFileName $ "csl" </> "wikiref.csl"
 
-  let doc'      = evalState (walkM replaceCites doc)
-                . query citations $ shadowdoc
+  csl     <- CSL.readCSLFile ( fmap stringify'
+                             . lookupMeta "locale" $ meta )
+           . fromMaybe defcsl
+           . fmap stringify'
+           . lookupMeta "csl" $ meta
 
-      notes'    = query notes doc'
-      walker    = walkM (buildNotes notes') doc'
-      state     = execState walker $ M.fromList []
-      doc''     = evalState walker $ M.fromList []
-      noteslist = OrderedList (1, Decimal, Period)
-                . map (uncurry . uncurry $ mkWikiNote)
-                . map (\(i,(r,rs)) -> ((i, rs), notes' !! r))
-                . zip [1..]
-                . M.toList $ state
-      biblist   = BulletList
-                . map (:[])
-                . query referencediv $ shadowdoc
-      doc'''    = walk orderCites
-                . walk (insertDiv "notes" noteslist)
-                . walk (insertDiv "bibliography" biblist)
-                $ doc''
-  return doc'''
+  bib     <- maybe (return []) CSL.readBiblioFile
+           . fmap stringify'
+           . lookupMeta "bibliography" $ meta
+
+  return   $ case isJust . lookupMeta "wikiref" $ meta of
+    True  -> wikiref csl bib $ pandoc
+    False -> citeproc csl bib $ pandoc
+
+
+
+stringify' :: MetaValue -> String
+stringify' (MetaString s) = s
+stringify' (MetaInlines is) = stringify is
