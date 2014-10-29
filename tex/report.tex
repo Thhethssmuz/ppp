@@ -66,55 +66,48 @@
   $endif$
 
   \AtBeginDocument{
+    \defcaptionname{english,british,american}{\keywordsname}{Keywords}
+    \defcaptionname{english}{\glossaryname}{Glossary}
 
-    $if(i-will-ignore-this-for-now)$
-    % Norwegian, does not at all have sensible defaults!
-    \defcopappendixname{norsk}{\abstractname}{Abstrakt}
-    \defcopappendixname{norsk}{\appendixname}{Vedlegg}
-    \defcopappendixname{norsk}{\appendixpagename}{Vedlegg}
-    \defcopappendixname{norsk}{\appendixtocname}{Vedlegg}
-    \defcopappendixname{norsk}{\bibname}{Bibliografi}
-    \defcopappendixname{norsk}{\chaptername}{Kapittel}
-    \defcopappendixname{norsk}{\contentsname}{Innhold}
-    \defcopappendixname{norsk}{\figurename}{Figur}
-    \defcopappendixname{norsk}{\listfigurename}{Figurer}
-    \defcopappendixname{norsk}{\listtablename}{Tabeller}
-    \defcopappendixname{norsk}{\notesname}{Noter}
-    \defcopappendixname{norsk}{\pagename}{Side}
-    \defcopappendixname{norsk}{\refname}{Referanser}
-    \defcopappendixname{norsk}{\tablename}{Tabell}
+    \defcaptionname{norsk}{\abstractname}{Abstrakt}
+    \defcaptionname{norsk}{\appendixname}{Vedlegg}
+    \defcaptionname{norsk}{\appendixpagename}{Vedlegg}
+    \defcaptionname{norsk}{\appendixtocname}{Vedlegg}
+    \defcaptionname{norsk}{\keywordsname}{Nøkelord}
+    \defcaptionname{norsk}{\notesname}{Noter}
 
-    % This is also Norwegian, in case you wandered...
-    \defcopappendixname{nynorsk}{\abstractname}{Abstrakt}
-    \defcopappendixname{nynorsk}{\appendixname}{Vedlegg}
-    \defcopappendixname{nynorsk}{\appendixpagename}{Vedlegg}
-    \defcopappendixname{nynorsk}{\appendixtocname}{Vedlegg}
-    \defcopappendixname{nynorsk}{\bibname}{Bibliografi}
-    \defcopappendixname{nynorsk}{\chaptername}{Kapittel}
-    \defcopappendixname{nynorsk}{\contentsname}{Innhold}
-    \defcopappendixname{nynorsk}{\figurename}{Figur}
-    \defcopappendixname{nynorsk}{\listfigurename}{Figurar}
-    \defcopappendixname{nynorsk}{\listtablename}{Tabellar}
-    \defcopappendixname{nynorsk}{\notesname}{Notar}
-    \defcopappendixname{nynorsk}{\pagename}{Side}
-    \defcopappendixname{nynorsk}{\refname}{Referansar}
-    \defcopappendixname{nynorsk}{\tablename}{Tabell}
-    $endif$
+    \defcaptionname{nynorsk}{\abstractname}{Abstrakt}
+    \defcaptionname{nynorsk}{\appendixname}{Vedlegg}
+    \defcaptionname{nynorsk}{\appendixpagename}{Vedlegg}
+    \defcaptionname{nynorsk}{\appendixtocname}{Vedlegg}
+    \defcaptionname{nynorsk}{\keywordsname}{Nykelord}
+    \defcaptionname{nynorsk}{\notesname}{Notar}
 
     $if(lang)$
       $if(abstractname)$\renewcommand\abstractname{$abstractname$}$endif$
+      $if(alsoname)$\renewcommand\alsoname{$alsoname$}$endif$
       $if(appendixname)$\renewcommand\appendixname{$appendixname$}$endif$
       $if(appendixpagename)$\renewcommand\appendixpagename{$appendixpagename$}$endif$
       $if(appendixtocname)$\renewcommand\appendixtocname{$appendixtocname$}$endif$
       $if(bibname)$\renewcommand\bibname{$bibname$}$endif$
+      $if(ccname)$\renewcommand\ccname{$ccname$}$endif$
       $if(chaptername)$\renewcommand\chaptername{$chaptername$}$endif$
       $if(contentsname)$\renewcommand\contentsname{$contentsname$}$endif$
+      $if(enclname)$\renewcommand\enclname{$enclname$}$endif$
       $if(figurename)$\renewcommand\figurename{$figurename$}$endif$
+      $if(glossaryname)$\renewcommand\glossaryname{$glossaryname$}$endif$
+      $if(headtoname)$\renewcommand\headtoname{$headtoname$}$endif$
+      $if(indexname)$\renewcommand\indexname{$indexname$}$endif$
+      $if(keywordsname)$\renewcommand\keywordsname{$keywordsname$}$endif$
       $if(listfigurename)$\renewcommand\listfigurename{$listfigurename$}$endif$
       $if(listtablename)$\renewcommand\listtablename{$listtablename$}$endif$
       $if(notesname)$\renewcommand\notesname{$notesname$}$endif$
       $if(pagename)$\renewcommand\pagename{$pagename$}$endif$
+      $if(partname)$\renewcommand\partname{$partname$}$endif$
+      $if(prefacename)$\renewcommand\prefacename{$prefacename$}$endif$
+      $if(proofname)$\renewcommand\proofname{$proofname$}$endif$
       $if(refname)$\renewcommand\refname{$refname$}$endif$
+      $if(seename)$\renewcommand\seename{$seename$}$endif$
       $if(tablename)$\renewcommand\tablename{$tablename$}$endif$
     $endif$
   }
@@ -190,7 +183,7 @@
       #1
 
       $if(keywords)$
-        \itshape{Keywords:} $for(keywords)$$keywords$$sep$, $endfor$
+        {\itshape{\keywordsname:}} $for(keywords)$$keywords$$sep$, $endfor$
       $endif$
     \end{savedabstract}
   }
@@ -264,6 +257,7 @@
 
 % --------------------------------- N O T E S ---------------------------------
   % NOTE: if links-as-notes is on do not try to put a link in an endnote!
+  \usepackage{endnotes}
 
   $if(wikiref)$
 
@@ -288,7 +282,6 @@
 
     % -- hyperendnotes --
     % taken from hyperendnote.sty by Ulrich Dirr
-      \usepackage{endnotes}
       \makeatletter%
       \newif\ifenotelinks%
       \newcounter{Hendnote}%
