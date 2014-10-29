@@ -184,7 +184,7 @@ citeproc style bib doc@(Pandoc meta _) =
 
 wikiref :: CSL.Style -> [CSL.Reference] -> Pandoc -> Pandoc
 wikiref style bib pandoc@(Pandoc meta _) =
-  let noteStyle = take 4 . CSL.styleClass $ style == "note"
+  let noteStyle = (==) "note" . take 4 . CSL.styleClass $ style
       doc       = walk splitCitation pandoc
       shadowdoc = (if noteStyle then walk replNormal else id)
                 . processCites style bib
