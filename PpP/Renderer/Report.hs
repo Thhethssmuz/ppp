@@ -16,7 +16,10 @@ import qualified Data.Map.Lazy as M
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.State
 import Data.Char (toLower)
+import Data.Maybe (isJust)
 
+import Paths_ppp
+import System.FilePath
 import System.Exit
 
 
@@ -68,13 +71,16 @@ configure (Macro k v)  = case k of
   "keywords"        -> addOnce k $ metaList k v
   "abstract"        -> addOnce k $ inlineFunc k ""
 
-  "toc"             -> addOnce k $ metaBlock k v ++ inlineFunc k ""
+  "toc"             -> addOnce k $ -- metaVar k "true" ++ 
+                                   inlineFunc k ""
   "lof"             -> addOnce k $ inlineFunc k ""
   "lot"             -> addOnce k $ inlineFunc k ""
 
   "appendices"      -> addOnce' k $ inlineFunc k ""
 
   "bibliography"    -> addOnce k $ metaVar k v ++ inlineFunc k ""
+
+  "csl"             -> addOnce k $ metaVar k v
 
   "notes"           -> let v' = map toLower v in
                        addOnce k $ inlineFunc k "" ++
@@ -83,6 +89,7 @@ configure (Macro k v)  = case k of
                          "grouped" -> metaVar "notes-chapter" "true" ++
                                       metaVar "grouped-notes" "true"
                          "wikiref" -> metaVar "wikiref" "true"
+                         ""        -> metaVar "wikiref" "true"
                          _         -> metaVar "wikiref" "true" ++
                                       pppErr ("unknown argument " ++ v' ++
                                               " applied to macro notes")
@@ -92,26 +99,27 @@ configure (Macro k v)  = case k of
 
 renderReport :: [Unprocessed] -> FilePath -> IO ()
 renderReport doc out = do
-  template <- readFile "tex/report.tex"
+  template  <- readFile =<< getDataFileName ("tex" </> "report.tex")
 
-  let ppp   = execState (mapM_ configure doc) emptyPpP{
-                reader = def{
-                  readerSmart = True,
-                  readerStandalone = True,
-                  readerParseRaw = True
-                },
-                writer = def{
-                  writerStandalone = True,
-                  writerHighlight = True,
-                  writerHighlightStyle = tango,
-                  writerChapters = True,
-                  writerTemplate=template
-                }
-              }
+  let ppp    = execState (mapM_ configure doc) emptyPpP{
+                 reader = def{
+                   readerSmart = True,
+                   readerStandalone = True,
+                   readerParseRaw = True
+                 },
+                 writer = def{
+                   writerStandalone = True,
+                   writerHighlight = True,
+                   writerHighlightStyle = tango,
+                   writerChapters = True,
+                   writerTemplate=template
+                 }
+               }
 
-  pandoc   <- wikiref'
-            . readMarkdown (reader ppp)
-            $ document ppp
+  pandoc    <- fmap toTex
+             . wikiref'
+             . readMarkdown (reader ppp)
+             $ document ppp
 
   printErrors pandoc
 
