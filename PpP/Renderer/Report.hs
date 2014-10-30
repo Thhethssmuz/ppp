@@ -118,6 +118,7 @@ renderReport doc out = do
 
   pandoc    <- fmap toTex
              . wikiref'
+             . figure
              . readMarkdown (reader ppp)
              $ document ppp
 

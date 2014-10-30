@@ -32,6 +32,7 @@ executable ppp
                        highlighting-kate >=0.5 && <0.6,
                        bytestring >=0.10 && <0.11,
                        pandoc-citeproc >=0.6 && <0.7,
-                       filepath >=1.3 && <1.4
+                       filepath >=1.3 && <1.4,
+                       split
   hs-source-dirs:      .
   default-language:    Haskell2010
