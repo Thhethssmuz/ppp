@@ -263,7 +263,9 @@
 
     \newcommand\notes[1]{
       \bookmarksetup{startatroot}
+
       \chapter*{\notesname}
+      \addcontentsline{toc}{chapter}{\notesname}
 
       #1
     }
