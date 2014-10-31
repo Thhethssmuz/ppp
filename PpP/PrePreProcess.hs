@@ -11,7 +11,7 @@ import Data.List (intersperse, groupBy)
 import Data.Char (isSpace, toLower)
 
 
-wordChar = ['0'..'9'] ++ ['A'..'Z'] ++ ['a'..'z'] ++ "-_"
+wordChar = ['0'..'9'] ++ ['A'..'Z'] ++ ['a'..'z'] ++ "'-_"
 
 word :: Parser String
 word = many1 $ oneOf wordChar
