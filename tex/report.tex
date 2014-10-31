@@ -66,6 +66,7 @@
   $endif$
 
   \AtBeginDocument{
+    \defcaptionname{english,british,american}{\citesname}{Citations}
     \defcaptionname{english,british,american}{\keywordsname}{Keywords}
     \defcaptionname{english}{\glossaryname}{Glossary}
 
@@ -73,6 +74,7 @@
     \defcaptionname{norsk}{\appendixname}{Vedlegg}
     \defcaptionname{norsk}{\appendixpagename}{Vedlegg}
     \defcaptionname{norsk}{\appendixtocname}{Vedlegg}
+    \defcaptionname{norks}{\citesname}{Sitater}
     \defcaptionname{norsk}{\keywordsname}{Nøkelord}
     \defcaptionname{norsk}{\notesname}{Noter}
 
@@ -80,36 +82,36 @@
     \defcaptionname{nynorsk}{\appendixname}{Vedlegg}
     \defcaptionname{nynorsk}{\appendixpagename}{Vedlegg}
     \defcaptionname{nynorsk}{\appendixtocname}{Vedlegg}
+    \defcaptionname{nynorks}{\citesname}{Sitat}
     \defcaptionname{nynorsk}{\keywordsname}{Nykelord}
     \defcaptionname{nynorsk}{\notesname}{Notar}
 
-    $if(lang)$
-      $if(abstractname)$\renewcommand\abstractname{$abstractname$}$endif$
-      $if(alsoname)$\renewcommand\alsoname{$alsoname$}$endif$
-      $if(appendixname)$\renewcommand\appendixname{$appendixname$}$endif$
-      $if(appendixpagename)$\renewcommand\appendixpagename{$appendixpagename$}$endif$
-      $if(appendixtocname)$\renewcommand\appendixtocname{$appendixtocname$}$endif$
-      $if(bibname)$\renewcommand\bibname{$bibname$}$endif$
-      $if(ccname)$\renewcommand\ccname{$ccname$}$endif$
-      $if(chaptername)$\renewcommand\chaptername{$chaptername$}$endif$
-      $if(contentsname)$\renewcommand\contentsname{$contentsname$}$endif$
-      $if(enclname)$\renewcommand\enclname{$enclname$}$endif$
-      $if(figurename)$\renewcommand\figurename{$figurename$}$endif$
-      $if(glossaryname)$\renewcommand\glossaryname{$glossaryname$}$endif$
-      $if(headtoname)$\renewcommand\headtoname{$headtoname$}$endif$
-      $if(indexname)$\renewcommand\indexname{$indexname$}$endif$
-      $if(keywordsname)$\renewcommand\keywordsname{$keywordsname$}$endif$
-      $if(listfigurename)$\renewcommand\listfigurename{$listfigurename$}$endif$
-      $if(listtablename)$\renewcommand\listtablename{$listtablename$}$endif$
-      $if(notesname)$\renewcommand\notesname{$notesname$}$endif$
-      $if(pagename)$\renewcommand\pagename{$pagename$}$endif$
-      $if(partname)$\renewcommand\partname{$partname$}$endif$
-      $if(prefacename)$\renewcommand\prefacename{$prefacename$}$endif$
-      $if(proofname)$\renewcommand\proofname{$proofname$}$endif$
-      $if(refname)$\renewcommand\refname{$refname$}$endif$
-      $if(seename)$\renewcommand\seename{$seename$}$endif$
-      $if(tablename)$\renewcommand\tablename{$tablename$}$endif$
-    $endif$
+    $if(abstractname)$\renewcommand\abstractname{$abstractname$}$endif$
+    $if(alsoname)$\renewcommand\alsoname{$alsoname$}$endif$
+    $if(appendixname)$\renewcommand\appendixname{$appendixname$}$endif$
+    $if(appendixpagename)$\renewcommand\appendixpagename{$appendixpagename$}$endif$
+    $if(appendixtocname)$\renewcommand\appendixtocname{$appendixtocname$}$endif$
+    $if(bibname)$\renewcommand\bibname{$bibname$}$endif$
+    $if(ccname)$\renewcommand\ccname{$ccname$}$endif$
+    $if(chaptername)$\renewcommand\chaptername{$chaptername$}$endif$
+    $if(citesname)$\renewcommand\citesname{$citesname$}$endif$
+    $if(contentsname)$\renewcommand\contentsname{$contentsname$}$endif$
+    $if(enclname)$\renewcommand\enclname{$enclname$}$endif$
+    $if(figurename)$\renewcommand\figurename{$figurename$}$endif$
+    $if(glossaryname)$\renewcommand\glossaryname{$glossaryname$}$endif$
+    $if(headtoname)$\renewcommand\headtoname{$headtoname$}$endif$
+    $if(indexname)$\renewcommand\indexname{$indexname$}$endif$
+    $if(keywordsname)$\renewcommand\keywordsname{$keywordsname$}$endif$
+    $if(listfigurename)$\renewcommand\listfigurename{$listfigurename$}$endif$
+    $if(listtablename)$\renewcommand\listtablename{$listtablename$}$endif$
+    $if(notesname)$\renewcommand\notesname{$notesname$}$endif$
+    $if(pagename)$\renewcommand\pagename{$pagename$}$endif$
+    $if(partname)$\renewcommand\partname{$partname$}$endif$
+    $if(prefacename)$\renewcommand\prefacename{$prefacename$}$endif$
+    $if(proofname)$\renewcommand\proofname{$proofname$}$endif$
+    $if(refname)$\renewcommand\refname{$refname$}$endif$
+    $if(seename)$\renewcommand\seename{$seename$}$endif$
+    $if(tablename)$\renewcommand\tablename{$tablename$}$endif$
   }
 
 % ------------------- L E N G T H S   A N D   I N D E N T S -------------------
@@ -239,6 +241,7 @@
 
 % -------------------------- B I B L I O G R A P H Y --------------------------
   \renewcommand\bibliography[1]{
+    $if(bib-heading)$
     \bookmarksetup{startatroot}
 
     \chapter*{\bibname}
@@ -248,9 +251,22 @@
     \setlength{\parindent}{-0.2in}
     \setlength{\leftskip}{0.2in}
     \setlength{\parskip}{8pt}\noindent
+    $endif$
 
     % show urls in bibliography as links and not as a footnote
     \let\href=\oldhref
+
+    #1
+  }
+
+% ----------------------------- C I T A T I O N S -----------------------------
+  \newcommand\citations[1]{
+    $if(cites-heading)$
+    \bookmarksetup{startatroot}
+
+    \chapter*{\citesname}
+    \addcontentsline{toc}{chapter}{\citesname}
+    $endif$
 
     #1
   }
@@ -259,27 +275,36 @@
   % NOTE: if links-as-notes is on do not try to put a link in an endnote!
   \usepackage{endnotes}
 
-  $if(wikiref)$
+  $if(notes)$
 
     \newcommand\notes[1]{
+      $if(notes-heading)$
       \bookmarksetup{startatroot}
 
       \chapter*{\notesname}
       \addcontentsline{toc}{chapter}{\notesname}
+      $endif$
 
       #1
     }
 
   $else$
 
-    \usepackage{fancyvrb}
-    \VerbatimFootnotes
+    % fancyvrb breaks footnoterefs
+    %\usepackage{fancyvrb}
+    %\VerbatimFootnotes
 
     % -- footnote style
-    %\makeatletter
-    %\renewcommand\@makefntext[1]%
-    %  {\noindent\makebox[0pt][r]{\textsuperscript{\@thefnmark}\,}#1}
-    %\makeatother
+    \deffootnotemark{%
+      \textsuperscript{{[}\thefootnotemark{]}}%
+      \label{footnotemark-\thefootnotemark}%
+    }
+    \deffootnote{2em}{1em}{%
+      \hyperref[footnotemark-\thefootnotemark]{
+        \thefootnotemark. %
+      }%
+      \label{footnote-\thefootnotemark}%
+    }
 
 
     % -- hyperendnotes --
@@ -352,7 +377,7 @@
           }%
         }%
         \hyper@linkstart{link}{Hendnote.\@theenvalue}%
-        \textsuperscript{\makeenmark}% <- reference type mark
+        \textsuperscript{{[}\makeenmark{]}}% <- reference type mark
         \hyper@linkend%
         \ifhmode%
           \spacefactor\@x@sf%
@@ -437,9 +462,11 @@
     \let\latexchapter\chapter
     \renewcommand\enoteheading{
       \setcounter{secnumdepth}{-2}
+      $if(notes-heading)$
       \latexchapter*{\notesname}
       \addcontentsline{toc}{chapter}{\notesname}
       \mbox{}\par\vskip-\baselineskip
+      $endif$
       \let\@afterindentfalse\@afterindenttrue
     }
     \def\enotedivision#1#2{\@ifnextchar\enotedivision{}{#1{#2}}}
@@ -468,8 +495,6 @@
       \bookmarksetup{startatroot}
 
       \begingroup
-      \parindent 0pt
-      \parskip 0pt
       \def\enotesize{\normalsize}
       \addtoendnotes{\unexpanded{\enotedivision{}{}}}
       \theendnotes

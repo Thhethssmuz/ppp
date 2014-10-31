@@ -76,22 +76,31 @@ replaceCites x = return x
 
 
 
+class ListStyle a where
+  showl :: a -> Int -> String
+
+instance ListStyle ListNumberStyle where
+  showl Decimal    i = show i
+  showl LowerAlpha i = [['a'..] !! (i - 1)]
+
+
+
 label :: String -> Inline
 label s = RawInline (Format "tex") $ "{\\label{" ++ s ++ "}}"
 
-mkWikiRef :: Int -> Int -> Inline
-mkWikiRef i b = Span ("note-back-ref-" ++ index ++ letter, [], [("ref", index)]) $
+mkWikiRef :: ListNumberStyle -> Int -> Int -> Inline
+mkWikiRef ls i b = Span ("note-back-ref-" ++ index ++ letter, [], [("ref", show i)]) $
   [ Link [Superscript [Str $ "[" ++ index ++ "]"]] ("#note-ref-" ++ index, "") ] ++
   [ label $ "note-back-ref-" ++ index ++ letter ]
-  where index  = show i
-        letter = (: "") . (['a'..] !!) $ b
+  where index  = showl ls i
+        letter = [['a'..] !! b]
 
 noteSlice :: Inline -> ([Inline], [Block])
 noteSlice (Note ((Para is):bs)) = (is, bs)
 noteSlice (Note bs) = ([], bs)
 
-mkWikiNote :: Int -> Int -> Inline -> [Block]
-mkWikiNote i 1 n = 
+mkWikiNote :: ListNumberStyle -> Int -> Int -> Inline -> [Block]
+mkWikiNote ls i 1 n = 
   [ Para $ [
       Span ("note-ref-" ++ index, [], []) $ [
         Link [Strong [Str "^"]] ("#note-back-ref-" ++ index ++ "a", ""),
@@ -99,15 +108,15 @@ mkWikiNote i 1 n =
       ] ++ is ++ [label $ "note-ref-" ++ index]
     ]
   ] ++ bs
-  where index    = show i
+  where index    = showl ls i
         (is, bs) = noteSlice n
-mkWikiNote i r n = 
+mkWikiNote ls i r n = 
   [ Para [
       Span ("note-ref-" ++ index, [], []) $
       [Str "^", Space] ++ refs ++ [Space] ++ is ++ [label $ "note-ref-" ++ index]
     ]
   ] ++ bs
-  where index    = show i
+  where index    = showl ls i
         (is, bs) = noteSlice n
         refs     = intersperse Space 
                  . map (mkBackRef)
@@ -118,13 +127,19 @@ mkWikiNote i r n =
 
 
 
-buildNotes :: [Inline] -> Inline -> State (M.Map Int Int) Inline
-buildNotes ns n@(Note bs) = do 
+buildNotes :: ListNumberStyle -> [Inline] -> Inline -> State (M.Map Int Int) Inline
+buildNotes ls ns n@(Note bs) = do 
   let ref = minimum . findIndices (== n) $ ns
   letter <- gets (fromMaybe 0 . M.lookup ref)
   modify $ M.insert ref (letter + 1)
-  return $ mkWikiRef (ref+1) letter
-buildNotes _ x = return x
+  return $ mkWikiRef ls (ref+1) letter
+buildNotes _ _ x = return x
+
+buildCites :: ListNumberStyle -> [Inline] -> Inline -> State (M.Map Int Int) Inline
+buildCites ls ns (Cite cs is) = do
+  is' <- walkM (buildNotes ls ns) $ is
+  return $ Cite cs is'
+buildCites _ _ x = return x
 
 
 
@@ -161,6 +176,10 @@ notes :: Inline -> [Inline]
 notes n@(Note _) = [n]
 notes _ = []
 
+citenotes :: Inline -> [Inline]
+citenotes (Cite _ is) = query notes is
+citenotes _ = []
+
 citations :: Inline -> [Inline]
 citations c@(Cite _ _) = [c]
 citations _ = []
@@ -171,45 +190,67 @@ referenceDiv _ = []
 
 
 
-citeproc :: CSL.Style -> [CSL.Reference] -> Pandoc -> Pandoc
-citeproc style bib doc@(Pandoc meta _) =
-  let shadowdoc = processCites style bib
-                . Pandoc meta . (:[]) . Para
-                . query citations $ doc
-      doc'      = evalState (walkM replaceCites doc)
-                . query citations $ shadowdoc
-      biblist   = Div ("",[],[])
-                . query referenceDiv $ shadowdoc
-  in              walk (insertDiv "bibliography" biblist) doc'
-
-wikiref :: CSL.Style -> [CSL.Reference] -> Pandoc -> Pandoc
-wikiref style bib pandoc@(Pandoc meta _) =
-  let noteStyle = (==) "note" . take 4 . CSL.styleClass $ style
-      doc       = walk splitCitation pandoc
-      shadowdoc = (if noteStyle then walk replNormal else id)
-                . processCites style bib
-                . Pandoc meta . (:[]) . Para
-                . (if noteStyle then walk genNormal else id)
-                . query citations $ doc
-      doc'      = evalState (walkM replaceCites doc)
-                . query citations $ shadowdoc
-      notes'    = query notes doc'
-      walker    = walkM (buildNotes notes') doc'
+makeNotesList :: ListNumberStyle -> Pandoc -> Pandoc
+makeNotesList listStyle doc =
+  let notes'    = query notes doc
+      walker    = walkM (buildNotes listStyle notes') doc
       state     = execState walker $ M.fromList []
-      doc''     = evalState walker $ M.fromList []
-      noteslist = OrderedList (1, Decimal, Period)
-                . map (uncurry . uncurry $ mkWikiNote)
+      doc'      = evalState walker $ M.fromList []
+      noteslist = OrderedList (1, listStyle, Period)
+                . map (uncurry . uncurry $ mkWikiNote listStyle)
                 . map (\(i,(r,rs)) -> ((i, rs), notes' !! r))
                 . zip [1..]
                 . M.toList $ state
+  in              walk (insertDiv "notes" noteslist) doc'
+
+makeCiteList :: ListNumberStyle -> Pandoc -> Pandoc
+makeCiteList listStyle doc =
+  let cites     = query citenotes doc
+      walker    = walkM (buildCites listStyle cites) doc
+      state     = execState walker $ M.fromList []
+      doc'      = evalState walker $ M.fromList []
+      citelist  = OrderedList (1, listStyle, Period)
+                . map (uncurry . uncurry $ mkWikiNote listStyle)
+                . map (\(i,(r,rs)) -> ((i, rs), cites !! r))
+                . zip [1..]
+                . M.toList $ state
+  in              walk (insertDiv "citations" citelist) doc'
+
+
+
+wikiref :: CSL.Style -> [CSL.Reference] -> Pandoc -> Pandoc
+wikiref style bib pandoc@(Pandoc meta _) =
+  let cslNotes  = (==) "note" . take 4 . CSL.styleClass $ style
+      doCites   = isJust . lookupMeta "cites" $ meta
+      doNotes   = isJust . lookupMeta "notes" $ meta
+
+      doc       = if   doCites || doNotes
+                  then walk splitCitation pandoc
+                  else pandoc
+
+      shadowdoc = (if cslNotes then walk replNormal else id)
+                . processCites style bib
+                . Pandoc meta . (:[]) . Para
+                . (if cslNotes then walk genNormal else id)
+                . query citations $ doc
+
+      doc'      = evalState (walkM replaceCites doc)
+                . query citations $ shadowdoc
+
+
+      doc''     = case (doCites, doNotes) of
+                    (True,  True)  -> makeNotesList LowerAlpha
+                                    . makeCiteList  Decimal $ doc'
+                    (True,  False) -> makeCiteList  LowerAlpha doc'
+                    (False, True)  -> makeNotesList Decimal doc'
+                    (False, False) -> doc'
+
       biblist   = BulletList
                 . map (:[])
                 . query referenceDiv $ shadowdoc
+
   in              walk orderCites
-                . walk (insertDiv "notes" noteslist)
                 . walk (insertDiv "bibliography" biblist) $ doc''
-
-
 
 wikiref' :: Pandoc -> IO Pandoc
 wikiref' pandoc@(Pandoc meta _) = do
@@ -225,9 +266,7 @@ wikiref' pandoc@(Pandoc meta _) = do
            . fmap stringify'
            . lookupMeta "bibliography" $ meta
 
-  return   $ case isJust . lookupMeta "wikiref" $ meta of
-    True  -> wikiref csl bib $ pandoc
-    False -> citeproc csl bib $ pandoc
+  return   . wikiref csl bib $ pandoc
 
 
 

@@ -78,8 +78,6 @@ configure (Macro k v)  = case k of
 
   "appendices"      -> addOnce' k $ inlineFunc k ""
 
-  "bibliography"    -> addOnce k $ metaVar k v ++ inlineFunc k ""
-
   "csl"             -> addOnce k $ metaVar k v
 
   "notes"           -> let v' = map toLower v in
@@ -88,11 +86,14 @@ configure (Macro k v)  = case k of
                          "simple"  -> metaVar "notes-chapter" "true"
                          "grouped" -> metaVar "notes-chapter" "true" ++
                                       metaVar "grouped-notes" "true"
-                         "wikiref" -> metaVar "wikiref" "true"
-                         ""        -> metaVar "wikiref" "true"
-                         _         -> metaVar "wikiref" "true" ++
+                         ""        -> metaVar "notes" "true"
+                         _         -> metaVar "notes" "true" ++
                                       pppErr ("unknown argument " ++ v' ++
                                               " applied to macro notes")
+
+  "citations"       -> addOnce k $ metaVar "cites" "true" ++ inlineFunc k ""
+
+  "bibliography"    -> addOnce k $ metaVar k v ++ inlineFunc k ""
 
   _                 -> add "err" . pppErr $ "unknown macro " ++ k
 
@@ -112,7 +113,7 @@ renderReport doc out = do
                    writerHighlight = True,
                    writerHighlightStyle = tango,
                    writerChapters = True,
-                   writerTemplate=template
+                   writerTemplate = template
                  }
                }
 
@@ -124,6 +125,10 @@ renderReport doc out = do
 
   printErrors pandoc
 
+  {-
+  putStrLn . writeLaTeX (writer ppp) $ pandoc
+
+  -}
   putStrLn $ "rendering " ++ out
 
   pdf <- makePDF "xelatex" writeLaTeX (writer ppp) pandoc
