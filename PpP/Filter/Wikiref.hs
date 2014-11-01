@@ -2,7 +2,7 @@ module PpP.Filter.Wikiref (wikiref, wikiref') where
 
 import Data.Ord (comparing)
 import Data.Char (isAlphaNum, isSpace)
-import Data.List (intersperse, findIndices, sortBy)
+import Data.List (intersperse, findIndices, sortBy, nub)
 import Data.Maybe (fromMaybe, listToMaybe, isJust)
 
 import Text.Pandoc
@@ -133,6 +133,7 @@ buildNotes ls ns n@(Note bs) = do
   letter <- gets (fromMaybe 0 . M.lookup ref)
   modify $ M.insert ref (letter + 1)
   return $ mkWikiRef ls (ref+1) letter
+
 buildNotes _ _ x = return x
 
 buildCites :: ListNumberStyle -> [Inline] -> Inline -> State (M.Map Int Int) Inline
@@ -192,7 +193,7 @@ referenceDiv _ = []
 
 makeNotesList :: ListNumberStyle -> Pandoc -> Pandoc
 makeNotesList listStyle doc =
-  let notes'    = query notes doc
+  let notes'    = nub . query notes $ doc
       walker    = walkM (buildNotes listStyle notes') doc
       state     = execState walker $ M.fromList []
       doc'      = evalState walker $ M.fromList []
@@ -205,7 +206,7 @@ makeNotesList listStyle doc =
 
 makeCiteList :: ListNumberStyle -> Pandoc -> Pandoc
 makeCiteList listStyle doc =
-  let cites     = query citenotes doc
+  let cites     = nub . query citenotes $ doc
       walker    = walkM (buildCites listStyle cites) doc
       state     = execState walker $ M.fromList []
       doc'      = evalState walker $ M.fromList []
