@@ -246,14 +246,16 @@
 
     \chapter*{\bibname}
     \addcontentsline{toc}{chapter}{\bibname}
-
-    % hack for bib listings to indent
-    \setlength{\parindent}{-0.2in}
-    \setlength{\leftskip}{0.2in}
-    \setlength{\parskip}{8pt}\noindent
     $endif$
 
+    % hack for bib listings to indent
+    % no longer applicable as bib listings are put inside a bullet list
+    %\setlength{\parindent}{-0.2in}
+    %\setlength{\leftskip}{0.2in}
+    %\setlength{\parskip}{8pt}\noindent
+
     % show urls in bibliography as links and not as a footnote
+    % only applicable if links-as-notes is on
     \let\href=\oldhref
 
     #1
