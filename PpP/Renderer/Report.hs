@@ -80,8 +80,11 @@ configure (Macro k v)  = case k of
 
   "csl"             -> addOnce k $ metaVar k v
 
-  "notes"           -> let v' = map toLower v in
-                       addOnce k $ inlineFunc k "" ++
+  "notes"           -> do
+                       addOnce k $ metaVar "notes-heading" "true"
+                       configure . Macro "notes\'" $ v
+  "notes\'"         -> let v' = map toLower v in
+                       addOnce k $ inlineFunc "notes" "" ++
                        case v' of
                          "simple"  -> metaVar "notes-chapter" "true"
                          "grouped" -> metaVar "notes-chapter" "true" ++
@@ -90,10 +93,16 @@ configure (Macro k v)  = case k of
                          _         -> metaVar "notes" "true" ++
                                       pppErr ("unknown argument " ++ v' ++
                                               " applied to macro notes")
-
-  "citations"       -> addOnce k $ metaVar "cites" "true" ++ inlineFunc k ""
-
-  "bibliography"    -> addOnce k $ metaVar k v ++ inlineFunc k ""
+  "citations"       -> do
+                       addOnce k $ metaVar "cites-heading" "true"
+                       configure . Macro "citations\'" $ v
+  "citations\'"     -> addOnce k $ metaVar "cites" "true" ++
+                                   inlineFunc "citations" ""
+  "bibliography"    -> do
+                       addOnce k $ metaVar "bib-heading" "true"
+                       configure . Macro "bibliography\'" $ v
+  "bibliography\'"  -> addOnce k $ metaVar "bibliography" v ++
+                                   inlineFunc "bibliography" ""
 
   _                 -> add "err" . pppErr $ "unknown macro " ++ k
 
@@ -125,10 +134,6 @@ renderReport doc out = do
 
   printErrors pandoc
 
-  {-
-  putStrLn . writeLaTeX (writer ppp) $ pandoc
-
-  -}
   putStrLn $ "rendering " ++ out
 
   pdf <- makePDF "xelatex" writeLaTeX (writer ppp) pandoc
