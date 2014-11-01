@@ -17,17 +17,17 @@ parseList = filter (not . null) . map trim . concatMap lines . splitBy (==';')
 
 
 pppErr :: String -> String
-pppErr err = "\n<div class=\"ppp-err\" err=\"" ++ err ++ "\"></div>\n\n"
+pppErr err = "\n\n<div class=\"ppp-err\" err=\"" ++ err ++ "\"></div>\n\n"
 
 inlineFunc :: String -> String -> String
 inlineFunc name block = 
-  "\n<div class=\"ppp-fn\" name=\""++name++"\">\n"++block++"\n</div>\n\n"
+  "\n\n<div class=\"ppp-fn\" name=\""++name++"\">\n"++block++"\n</div>\n\n"
 
 metaVar :: String -> String -> String
-metaVar name value = "\n---\n" ++ name ++ ": " ++ value ++ "\n---\n\n"
+metaVar name value = "\n\n---\n" ++ name ++ ": " ++ value ++ "\n---\n\n"
 
 metaList :: String -> String -> String
 metaList name list = metaVar name . concatMap ("\n- " ++) . parseList $ list
 
 metaBlock :: String -> String -> String
-metaBlock name block = "\n---\n" ++ name ++ ": |\n  " ++ block ++ "\n---\n\n"
+metaBlock name block = "\n\n---\n" ++ name ++ ": |\n  " ++ block ++ "\n---\n\n"
