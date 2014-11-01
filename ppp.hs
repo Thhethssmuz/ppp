@@ -4,6 +4,7 @@ import PpP.Shared
 import PpP.PrePreProcess
 import PpP.Renderer
 
+import System.Environment
 import System.Directory (doesFileExist)
 import System.FilePath
 import System.Exit
@@ -16,17 +17,25 @@ render doc inn = case getType doc of
 
 main :: IO ()
 main = do
-  let fp = "test/test.md"
+  fp <- getArgs
 
-  exist <- doesFileExist fp
+  case fp of 
+    [] -> do
+          putStrLn $ "ppp: called with no arguments"
+          exitFailure
+    _  -> return ()
+
+  let fp' = head fp
+
+  exist <- doesFileExist fp'
   if exist
   then return ()
   else do
-       putStrLn $ "ppp: unable to render " ++ fp ++ ", file not found"
+       putStrLn $ "ppp: unable to render " ++ fp' ++ ", file not found"
        exitFailure
 
-  doc <- prePreProcess fp
-  render doc fp
+  doc <- prePreProcess fp'
+  render doc fp'
 
   putStrLn "done"
   exitSuccess
