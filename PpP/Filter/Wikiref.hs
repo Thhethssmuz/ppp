@@ -30,9 +30,9 @@ toCite :: Citation -> Inline
 toCite (Citation i p s m n h) = 
   Cite [Citation i p' s' m n h] $ p' ++ i' ++ s'
   where p' = if sanitize p == "" then []
-                                 else [Str $ sanitize p, Space]
+                                 else [Str $ sanitize p]
         s' = if sanitize s == "" then []
-                                 else [Str ",", Space, Str $ sanitize s]
+                                 else [Str $ sanitize s]
         i' = [Str $ "@" ++ i]
 
 splitCitation :: Inline -> Inline
