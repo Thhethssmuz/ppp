@@ -71,6 +71,9 @@ configure (Macro k v)  = case k of
   "keywords"        -> addOnce k $ metaList k v
   "abstract"        -> addOnce k $ inlineFunc k ""
 
+  "number-sections" -> add k $ inlineFunc' "numbersections" v
+  "toc-depth"       -> add k $ inlineFunc' "tocdepth" v
+
   "toc"             -> addOnce k $ -- metaVar k "true" ++ 
                                    inlineFunc k ""
   "lof"             -> addOnce k $ inlineFunc k ""

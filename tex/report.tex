@@ -195,6 +195,12 @@
   \setcounter{secnumdepth}{-1}
   \addtocontents{toc}{\protect\setcounter{tocdepth}{-1}}
 
+  % inline toc depth function
+  \newcommand\tocdepth[1]{
+    \FPeval{\result}{clip(#1 - 1)}
+    \addtocontents{toc}{\protect\setcounter{tocdepth}{\result}}
+  }
+
   % add toc, lof and lot as a pdf bookmark
   \makeatletter
   \BeforeTOCHead{%
