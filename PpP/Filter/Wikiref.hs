@@ -49,9 +49,15 @@ genNormal (Cite [c] is) =
   ]
 genNormal x = x
 
+addSpace :: Inline -> Inline
+addSpace (Note bs) = Span ("",[],[]) [Space, Note bs]
+addSpace x = x
+
 replNormal :: Inline -> Inline
-replNormal (Span ("",["tmp"],[]) [Cite c no, Cite _ full]) =
-  Cite c . evalState (walkM replaceNotes no) . query notes $ full
+replNormal (Span ("",["tmp"],[]) [Cite [c] no, Cite _ full]) =
+  Cite [c] . (if citationMode c == AuthorInText then walk addSpace else id)
+           . evalState (walkM replaceNotes no)
+           . query notes $ full
 replNormal x = x
 
 replaceNotes :: Inline -> State [Inline] Inline

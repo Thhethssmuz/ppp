@@ -18,7 +18,7 @@ unmarkNotes x = x
 markedToNote :: Inline -> Inline
 markedToNote (Span ("",["link-as-note"],[]) [(Link is (url, title))]) = 
   Span ("",[],[]) $
-  is ++ [Note [Para [Link [Str url] (url, title)]]]
+  is ++ [Space, Note [Para [Link [Str url] (url, title)]]]
 markedToNote x = x
 
 linksAsNotes :: Pandoc -> Pandoc
