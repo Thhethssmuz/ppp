@@ -19,9 +19,15 @@ parseList = filter (not . null) . map trim . concatMap lines . splitBy (==';')
 pppErr :: String -> String
 pppErr err = "\n\n<div class=\"ppp-err\" err=\"" ++ err ++ "\"></div>\n\n"
 
+
 inlineFunc :: String -> String -> String
 inlineFunc name block = 
   "\n\n<div class=\"ppp-fn\" name=\""++name++"\">\n"++block++"\n</div>\n\n"
+
+inlineFunc' :: String -> String -> String
+inlineFunc' name arg = 
+  "\n\n<div class=\"ppp-fn\" name=\""++name++"\" arg=\""++arg++"\"></div>\n\n"
+
 
 metaVar :: String -> String -> String
 metaVar name value = "\n\n---\n" ++ name ++ ": " ++ value ++ "\n---\n\n"
