@@ -26,18 +26,23 @@ main = do
     _  -> return ()
 
   let fp = head args
+  let file = takeFileName fp
+  dir <- if isRelative fp then do
+                               cd <- getCurrentDirectory
+                               return . combine cd . dropFileName $ fp
+                          else return . dropFileName $ fp
 
   setCurrentDirectory . dropFileName $ fp
 
-  exist <- doesFileExist fp
+  exist <- doesFileExist file
   if exist
   then return ()
   else do
        putStrLn $ "ppp: unable to render " ++ fp ++ ", file not found"
        exitFailure
 
-  doc <- prePreProcess fp
-  render doc fp
+  doc <- prePreProcess file
+  render doc file
 
   putStrLn "done"
   exitSuccess
