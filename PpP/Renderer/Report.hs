@@ -69,7 +69,7 @@ configure (Macro k v)  = case k of
   "date"            -> addOnce k $ metaBlock k v
   "publisher"       -> addOnce k $ metaBlock k v
   "keywords"        -> addOnce k $ metaList k v
-  "abstract"        -> addOnce k $ inlineFunc k ""
+  "abstract"        -> addOnce k $ inlineFunc k v
 
   "number-sections" -> add k $ inlineFunc' "numbersections" v
   "toc-depth"       -> add k $ inlineFunc' "tocdepth" v
