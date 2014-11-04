@@ -165,7 +165,7 @@
   \usepackage{bookmark}
   \hypersetup{
     pdfcreator={ppp},
-    pdfauthor={$for(author)$$author$$sep$ and $endfor$},
+    pdfauthor={$for(author)$$author$$sep$, $endfor$},
     pdfsubject={$subject$},
     pdftitle={$title$},
     pdfkeywords={$for(keywords)$$keywords$$sep$, $endfor$}
@@ -174,7 +174,7 @@
   \subject{$subject$}
   \title{$title$}
   \subtitle{$subtitle$}
-  \author{$for(author)$$author$$sep$ and $endfor$}
+  \author{$for(author)$$author$$sep$ \and $endfor$}
   \date{$date$}
   \publishers{$publisher$}
 
