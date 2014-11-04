@@ -3,9 +3,11 @@ module PpP.Filter.LinksAsNotes (linksAsNotes) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk
 
-markAll :: Inline -> Inline
-markAll (Link is t) = Span ("",["link-as-note"],[]) [Link is t]
-markAll x = x
+mark :: Inline -> Inline
+mark l@(Link _ (('#':_), _)) = l
+mark l@(Link _ (('f':'i':'g':':':_), _)) = l
+mark l@(Link _ _) = Span ("",["link-as-note"],[]) [l]
+mark x = x
 
 unmark :: Inline -> Inline
 unmark (Span ("",["link-as-note"],[]) [l]) = l
@@ -24,4 +26,4 @@ markedToNote x = x
 linksAsNotes :: Pandoc -> Pandoc
 linksAsNotes doc = walk markedToNote
                  . walk unmarkNotes
-                 . walk markAll $ doc
+                 . walk mark $ doc
