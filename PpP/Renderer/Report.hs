@@ -107,6 +107,14 @@ configure (Macro k v)  = case k of
   "bibliography\'"  -> addOnce k $ metaVar "bibliography" v ++
                                    inlineFunc "bibliography" ""
 
+  "page-size"       -> addOnce k $ metaVar k v
+  "page-div"        -> addOnce k $ metaVar k v
+  
+  "font-size"       -> addOnce k $ metaVar k v
+  "main-font"       -> addOnce k $ metaVar k v
+  "sans-font"       -> addOnce k $ metaVar k v
+  "mono-font"       -> addOnce k $ metaVar k v
+
   _                 -> add "err" . pppErr $ "unknown macro " ++ k
 
 

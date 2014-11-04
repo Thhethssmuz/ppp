@@ -3,6 +3,8 @@
 
   \documentclass[
     fontsize=$if(font-size)$$font-size$$else$12pt$endif$,
+    paper=$if(page-size)$$page-size$$else$a4$endif$,
+    pagesize=auto,
     DIV=$if(page-div)$$page-div$$else$10$endif$,
     BCOR=0mm,
     oneside,
