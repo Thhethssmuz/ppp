@@ -1,0 +1,127 @@
+% ------------------------ D O C U M E N T   C L A S S ------------------------
+  \documentclass[
+    fontsize=$if(font-size)$$font-size$$else$11pt$endif$,
+    paper=$if(page-size)$$page-size$$else$a4$endif$,
+    pagesize=auto,
+    DIV=$if(page-div)$$page-div$$else$12$endif$,
+    BCOR=0mm
+    ]{scrartcl}
+
+% ----------------------------- F O N T  S P E C ------------------------------
+  \usepackage[T1]{fontenc}
+  \usepackage{lmodern}
+  \usepackage{amssymb,amsmath}
+  \usepackage{fixltx2e}
+  \IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+  \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+  \usepackage{mathspec} % imports fontspec
+  \usepackage{xltxtra,xunicode}
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{â‚¬}
+  $if(main-font)$\setmainfont{$main-font$}$endif$
+  $if(sans-font)$\setsansfont{$sans-font$}$endif$
+  $if(mono-font)$\setmonofont{$mono-font$}$endif$
+  \usepackage{pifont}
+
+% ---------------------------------- M I S C ----------------------------------
+  \usepackage{titling}
+  \usepackage[unicode=true]{hyperref}
+  \usepackage{array}
+  \usepackage{tabularx}
+  \usepackage{parskip}
+  \usepackage[svgnames]{xcolor}
+  \usepackage{fontspec}
+  \usepackage{framed}
+  \usepackage{longtable,booktabs}
+  \usepackage{bookmark}
+  \hypersetup{
+    pdfcreator={ppp},
+    pdfauthor={$author$},
+    pdftitle={CV},
+    breaklinks=true,
+    bookmarks=true,
+    colorlinks=true,
+    urlcolor=black,
+    linkcolor=black,
+    pdfborder={0 0 0}
+  }
+
+% ------------------- L E N G T H S   A N D   I N D E N T S -------------------
+  \setlength{\parindent}{0pt}
+  \setlength{\parskip}{6pt plus 2pt minus 1pt}
+  \setlength{\emergencystretch}{3em}
+  \setlength{\droptitle}{-50pt}
+
+% ------------------------- S E C T I O N   S T Y L E -------------------------
+  \makeatletter
+  \renewcommand\@seccntformat[1]{}
+  \makeatother
+
+  \definecolor{shadecolor}{gray}{0.85}
+
+  \renewcommand{\section}[1]{%
+    \parbox{\textwidth}{%
+      \begin{shaded}%
+        \textbf{\large#1}%
+      \end{shaded}%
+    }%
+  }
+
+% -------------------------------- T A B L E S --------------------------------
+
+  \let\oldlongtable\longtable
+  \let\endoldlongtable\endlongtable
+  \renewenvironment{longtable}{\begin{oldlongtable}}{\end{oldlongtable}}
+
+  \renewcommand{\toprule}[1][]{}
+  \renewcommand{\midrule}[1][]{\vspace{-13pt}}
+  \renewcommand{\bottomrule}[1][]{\vspace{-13pt}}
+  \renewcommand{\addlinespace}[1][]{}
+
+  \setlength{\LTpre}{\parskip}
+  \setlength{\LTpost}{0pt}
+
+% --------------------------------- T I T L E ---------------------------------
+  \pretitle{\noindent\begin{flushleft}}
+  \posttitle{\end{flushleft}}
+  \title{\textbf{\Large $author$}}
+
+% -------------------------------- A U T H O R --------------------------------
+  \preauthor{%
+    \noindent%
+    \begin{tabular}[htbp]{%
+      @{}p{\dimexpr 0.5\textwidth-0\tabcolsep}@{}%
+      >{\hfill}p{\dimexpr 0.5\textwidth-0\tabcolsep}@{}%
+    }%
+  }
+  \postauthor{%
+    \end{tabular}\par%
+  }
+  \author{%
+    $address1$ & $phone$ \\
+    $address2$ & $email$ \\
+    $address3$ & $webpage$
+  }
+
+% ---------------------------------- D A T E ----------------------------------
+  \predate{}
+  \postdate{}
+  \date{}
+
+% ------------------------ P A G E   N U M B E R I N G ------------------------
+  \setlength{\parindent}{0pt}
+  $if(pagenumbers)$
+  \pagenumbering{arabic}
+  $else$
+  \pagenumbering{gobble}
+  $endif$
+
+% ----------------------------------- main ------------------------------------
+\begin{document}
+
+\maketitle
+\vspace{-13pt}
+
+$body$
+
+\end{document}
