@@ -11,6 +11,7 @@ import System.Exit
 
 render :: [Unprocessed] -> FilePath -> IO ()
 render doc inn = case getType doc of
+  "cv"      -> renderCV (rmType False doc) $ replaceExtension inn "pdf"
   "report"  -> renderReport (rmType False doc) $ replaceExtension inn "pdf"
   "default" -> renderReport (rmType False doc) $ replaceExtension inn "pdf"
   unknown   -> renderReport (rmType True doc) $ replaceExtension inn "pdf"
