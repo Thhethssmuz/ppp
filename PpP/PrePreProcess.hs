@@ -87,7 +87,7 @@ includeFile fp = do
   else do 
        file <- lift . readFile $ fp
        modify (++ [Markdown "\n\n"])
-       mapM_ parseUnprocessed . groupUnprocessed $ file
+       mapM_ parseUnprocessed . groupUnprocessed . filter (/= '\r') $ file
        modify (++ [Markdown "\n\n"])
 
 prePreProcess :: FilePath -> IO [Unprocessed]
