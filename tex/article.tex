@@ -1,0 +1,40 @@
+
+\subject{}
+\title{$title$}
+\subtitle{$subtitle$}
+\author{$for(author)$$author$$sep$ \and $endfor$}
+\date{}
+\dedication{}
+
+\KOMAoptions{titlepage=false}
+
+\pdfbookmark[-1]{$title$}{$title$}
+$if(page-twocolumn)$
+\makeatletter
+\twocolumn[
+  \begin{@twocolumnfalse}
+$endif$
+    \vspace{-3em}
+    \maketitle
+    \vspace{-1.5em}
+    $if(abstract)$
+    \vspace{-1.5em}
+    \begin{abstract}
+      \KOMAoptions{parskip=half}
+      \vspace{-1.5em}
+      \noindent
+      $abstract$
+
+      $if(keywords)$
+      \textbf{\keywordsname:} \textnormal{$for(keywords)$$keywords$$sep$, $endfor$}
+      $endif$
+    \end{abstract}
+    $endif$
+
+$if(page-twocolumn)$
+  \end{@twocolumnfalse}
+]
+\makeatother
+$endif$
+
+$body$

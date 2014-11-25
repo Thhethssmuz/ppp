@@ -1,4 +1,4 @@
-module PpP.Renderer.Report (renderReport) where
+module PpP.Renderer.Report (renderReport, renderArticle, renderJournal) where
 
 import PpP.Err
 import PpP.Filter
@@ -23,9 +23,10 @@ import System.FilePath
 import System.Exit
 
 
-configure :: Unprocessed -> State PpP ()
-configure (Markdown s) = add "" s
-configure (Macro k v)  = case k of
+
+config :: Unprocessed -> State PpP ()
+config (Markdown s)  = add "" s
+config (Macro k v)   = case k of
 
   "language"        -> let lang = map toLower v
                            loc  = M.lookup lang languages in
@@ -47,7 +48,7 @@ configure (Macro k v)  = case k of
                                           metaVar "page-header-right"  (last hs)
                          _ -> do 
                               add "err" . pppErr $ "to many arguments applied to macro " ++ k
-                              configure . Macro k . unlines . take 3 $ hs
+                              config . Macro k . unlines . take 3 $ hs
 
   "footer"          -> let fs = parseList v in
                        case length fs of
@@ -60,8 +61,9 @@ configure (Macro k v)  = case k of
                                           metaVar "page-footer-right"  (last fs)
                          _ -> do 
                               add "err" . pppErr $ "to many arguments applied to macro " ++ k
-                              configure . Macro k . unlines . take 3 $ fs
+                              config . Macro k . unlines . take 3 $ fs
 
+  "titlehead"       -> addOnce k $ metaBlock k v
   "subject"         -> addOnce k $ metaBlock k v
   "title"           -> addOnce k $ metaBlock k v
   "subtitle"        -> addOnce k $ metaBlock k v
@@ -69,13 +71,12 @@ configure (Macro k v)  = case k of
   "date"            -> addOnce k $ metaBlock k v
   "publisher"       -> addOnce k $ metaBlock k v
   "keywords"        -> addOnce k $ metaList k v
-  "abstract"        -> addOnce k $ inlineFunc k v
+  "abstract"        -> addOnce k $ metaBlock k v
 
   "number-sections" -> add k $ inlineFunc' "numbersections" v
   "toc-depth"       -> add k $ inlineFunc' "tocdepth" v
 
-  "toc"             -> addOnce k $ -- metaVar k "true" ++ 
-                                   inlineFunc k ""
+  "toc"             -> addOnce k $ inlineFunc k ""
   "lof"             -> addOnce k $ inlineFunc k ""
   "lot"             -> addOnce k $ inlineFunc k ""
 
@@ -85,7 +86,7 @@ configure (Macro k v)  = case k of
 
   "notes"           -> do
                        addOnce k $ metaVar "notes-heading" "true"
-                       configure . Macro "notes\'" $ v
+                       config . Macro "notes\'" $ v
   "notes\'"         -> let v' = map toLower v in
                        addOnce k $ inlineFunc "notes" "" ++
                        case v' of
@@ -98,61 +99,151 @@ configure (Macro k v)  = case k of
                                               " applied to macro notes")
   "citations"       -> do
                        addOnce k $ metaVar "cites-heading" "true"
-                       configure . Macro "citations\'" $ v
+                       config . Macro "citations\'" $ v
   "citations\'"     -> addOnce k $ metaVar "cites" "true" ++
                                    inlineFunc "citations" ""
   "bibliography"    -> do
                        addOnce k $ metaVar "bib-heading" "true"
-                       configure . Macro "bibliography\'" $ v
+                       config . Macro "bibliography\'" $ v
   "bibliography\'"  -> addOnce k $ metaVar "bibliography" v ++
                                    inlineFunc "bibliography" ""
 
   "page-size"       -> addOnce k $ metaVar k v
   "page-div"        -> addOnce k $ metaVar k v
-  
+
   "font-size"       -> addOnce k $ metaVar k v
   "main-font"       -> addOnce k $ metaVar k v
   "sans-font"       -> addOnce k $ metaVar k v
   "mono-font"       -> addOnce k $ metaVar k v
 
   _                 -> add "err" . pppErr $ "unknown macro " ++ k
+config (Include k _) = add "err" . pppErr $ "unknown macro " ++ k
+
+configIncArticle :: Unprocessed -> State PpP ()
+configIncArticle (Markdown s)  = add "" s
+configIncArticle (Macro k v)   =
+  if   k `elem` [ "title", "subtitle", "author", "keywords", "abstract", "notes",
+                  "notes\'", "citations", "citations\'", "bibliography",
+                  "bibliography\'" ]
+  then config . Macro k $ v
+  else add "err" . pppErr $ "unknown or unsupported macro " ++ k ++
+                            " inside an included journal article"
+configIncArticle (Include k _) = add "err" . pppErr $ "unknown macro " ++ k
+
+configJournal :: Unprocessed -> State PpP ()
+configJournal (Markdown s)  = add "" s
+configJournal (Macro k v)   =
+  if   k `elem` [ "notes", "notes\'", "citations", "citations\'", "bibliography",
+                  "bibliography\'", "lof", "lot" ]
+  then add "err" . pppErr $ "macro " ++ k ++ " is unsupported for journal type"
+  else config . Macro k $ v
+configJournal (Include k _) = add "err" . pppErr $ "unknown macro " ++ k
 
 
-renderReport :: [Unprocessed] -> FilePath -> IO ()
-renderReport doc out = do
+
+renderIncArticle :: Bool -> (Int, Unprocessed) -> IO Unprocessed
+renderIncArticle twocolumn (n, (Include "article" doc)) = do
+  template  <- readFile =<< getDataFileName ("tex" </> "article.tex")
+  let ppp    = execState (mapM_ configIncArticle doc) academicPpP{
+                 writer = academicWriter{
+                   writerChapters = False,
+                   writerTemplate = template
+                 }
+               }
+  pandoc <- pppToPandoc ppp twocolumn . show $ n
+  return . Markdown . writeLaTeX (writer ppp) $ pandoc
+renderIncArticle _ (_, x) = return x
+
+renderJournal :: [Unprocessed] -> Bool -> FilePath -> IO ()
+renderJournal doc twocolumn out = do
   template  <- readFile =<< getDataFileName ("tex" </> "report.tex")
+  doc'      <- mapM (renderIncArticle twocolumn) . zip [1..] $ doc
+  let ppp    = execState (mapM_ configJournal doc') academicPpP{
+                 writer = academicWriter{
+                   writerVariables = [
+                     ("documentclass", "scrartcl"),
+                     ("page-twocolumn", if twocolumn then "true" else "false"),
+                     ("rootlevel", "1"),
+                     ("journal", "true")
+                     ],
+                   writerChapters = False,
+                   writerTemplate = template
+                 }
+               }
+  pandoc    <- pppToPandoc ppp twocolumn ""
+  renderPDF pandoc (writer ppp) out
 
-  let ppp    = execState (mapM_ configure doc) emptyPpP{
-                 reader = def{
-                   readerSmart = True,
-                   readerStandalone = True,
-                   readerParseRaw = True
-                 },
-                 writer = def{
-                   writerStandalone = True,
-                   writerHighlight = True,
-                   writerHighlightStyle = tango,
+renderArticle :: [Unprocessed] -> Bool -> FilePath -> IO ()
+renderArticle doc twocolumn out = do
+  template  <- readFile =<< getDataFileName ("tex" </> "report.tex")
+  let ppp    = execState (mapM_ config doc) academicPpP{
+                 writer = academicWriter{
+                   writerVariables = [
+                     ("documentclass", "scrartcl"),
+                     ("rootlevel", "1"),
+                     ("article", "true")
+                     ] ++ if twocolumn then [("page-twocolumn", "true")] else [],
+                   writerChapters = False,
+                   writerTemplate = template
+                 }
+               }
+  pandoc    <- pppToPandoc ppp twocolumn ""
+  renderPDF pandoc (writer ppp) out
+
+renderReport :: [Unprocessed] -> Bool -> FilePath -> IO ()
+renderReport doc twocolumn out = do
+  template  <- readFile =<< getDataFileName ("tex" </> "report.tex")
+  let ppp    = execState (mapM_ config doc) academicPpP{
+                 writer = academicWriter{
+                   writerVariables = [
+                     ("documentclass", "scrreprt"),
+                     ("page-twocolumn", if twocolumn then "true" else "false"),
+                     ("rootlevel", "0"),
+                     ("report", "true")
+                   ],
                    writerChapters = True,
                    writerTemplate = template
                  }
                }
+  pandoc    <- pppToPandoc ppp twocolumn ""
+  renderPDF pandoc (writer ppp) out
 
-  pandoc    <- fmap toTex
-             . wikiref'
-             . numberRef
-             . figure
-             . linksAsNotes
-             . readMarkdown (reader ppp)
-             $ document ppp
 
+
+pppToPandoc :: PpP -> Bool -> String -> IO Pandoc
+pppToPandoc ppp twocolumn prefix = do
+  pandoc <- fmap toTex
+          . wikiref'
+          . numberRef
+          . figure twocolumn
+          . linksAsNotes
+          . readMarkdown (reader ppp)
+          $ document ppp
   printErrors pandoc
+  return pandoc
 
+renderPDF :: Pandoc -> WriterOptions -> String -> IO ()
+renderPDF pandoc writer' out = do
   putStrLn $ "rendering " ++ out
-
-  pdf <- makePDF "xelatex" writeLaTeX (writer ppp) pandoc
-
+  pdf <- makePDF "xelatex" writeLaTeX writer' pandoc
   case pdf of
     Left err -> do
                 BS.putStrLn err
                 exitFailure
     Right bs -> BS.writeFile out bs
+
+academicWriter :: WriterOptions
+academicWriter = def{
+  writerStandalone = True,
+  writerHighlight = True,
+  writerHighlightStyle = tango
+}
+
+academicPpP :: PpP
+academicPpP = emptyPpP{
+  reader = def{
+    readerSmart = True,
+    readerStandalone = True,
+    readerParseRaw = True
+  }
+}

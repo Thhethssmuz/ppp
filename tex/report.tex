@@ -7,9 +7,10 @@
     pagesize=auto,
     DIV=$if(page-div)$$page-div$$else$10$endif$,
     BCOR=0mm,
-    oneside,
-    abstract=on,
-    appendixprefix=true]{scrreprt}
+    twoside=$if(page-twoside)$true$else$false$endif$,
+    twocolumn=$if(page-twocolumn)$true$else$false$endif$,
+    appendixprefix=true
+    ]{$documentclass$}
 
 % ----------------------------- F O N T  S P E C ------------------------------
   \usepackage[T1]{fontenc}
@@ -57,7 +58,7 @@
   \rfoot{$page-footer-right$}
 
 % ---------------------------------- M I S C ----------------------------------
-  \usepackage{listings}% ?
+  \usepackage{listings}
   \usepackage{longtable,booktabs}% tables
   \usepackage{lipsum}% for testing
 
@@ -116,12 +117,19 @@
     $if(tablename)$\renewcommand\tablename{$tablename$}$endif$
   }
 
-% ------------------- L E N G T H S   A N D   I N D E N T S -------------------
-  \setlength{\parindent}{0pt}
-  \setlength{\parskip}{6pt plus 2pt minus 1pt}
-  \setlength{\emergencystretch}{3em}
+% ---------------------------- P A R A G R A P H S ----------------------------
+  %\setlength{\parindent}{0pt}
+  %\setlength{\parskip}{6pt plus 2pt minus 1pt}
+  %\setlength{\emergencystretch}{3em}
+
+  \KOMAoptions{parskip=half}
 
 % ---------------------- S E C T I O N   S E T T I N G S ----------------------
+  %\KOMAoptions{
+  %  chapterprefix=false,
+  %  headings=openany
+  %}
+
   \usepackage[]{fp}
 
   \newcommand\resetsecnumdepth{
@@ -160,6 +168,18 @@
   \usepackage{wrapfig}
   \usepackage{caption}
   \usepackage{subcaption}
+  \usepackage{dblfloatfix}
+
+  $if(page-twocolumn)$
+    %\renewenvironment{figure}[1]{\begin{figure*}[tbp]}{\end{figure*}}
+
+  %\begin{strip}
+  %  \captionof{table}{Erste Tabelle}
+  %  \centering
+  %  \rule{8cm}{4.5cm}
+  %\end{strip}
+
+  $endif$
 
 % ----------- T I T L E   P A G E   A N D   P D F   M E T A D A T A -----------
   \usepackage{bookmark}
@@ -171,25 +191,67 @@
     pdfkeywords={$for(keywords)$$keywords$$sep$, $endfor$}
   }
 
+  \KOMAoptions{abstract=true}
+
+  \titlehead{$titlehead$}
   \subject{$subject$}
   \title{$title$}
   \subtitle{$subtitle$}
   \author{$for(author)$$author$$sep$ \and $endfor$}
   \date{$date$}
   \publishers{$publisher$}
+  \dedication{$dedication$}
 
-% ------------------------------ A B S T R A C T ------------------------------
-  \let\savedabstract=\abstract
-  \renewcommand\abstract[1]{
-    \pdfbookmark[0]{\abstractname}{\abstractname}
-    \begin{savedabstract}
 
-      #1
+  \newcommand\ppptitle{
+    \KOMAoptions{titlepage=true}
+
+    \pdfbookmark[-1]{$title$}{$title$}
+    \maketitle
+
+    $if(abstract)$
+    \pdfbookmark[$rootlevel$]{\abstractname}{\abstractname}
+    \begin{abstract}
+      $abstract$
 
       $if(keywords)$
-        {\itshape{\keywordsname:}} $for(keywords)$$keywords$$sep$, $endfor$
+      \textbf{\keywordsname:} \textnormal{$for(keywords)$$keywords$$sep$, $endfor$}
       $endif$
-    \end{savedabstract}
+    \end{abstract}
+    $endif$
+  }
+
+  \newcommand\ppptitlemini{
+    \KOMAoptions{titlepage=false}
+
+    \pdfbookmark[-1]{$title$}{$title$}
+    $if(page-twocolumn)$
+    \makeatletter
+    \twocolumn[
+      \begin{@twocolumnfalse}
+    $endif$
+        \vspace{-3em}
+        \maketitle
+        \vspace{-1.5em}
+        $if(abstract)$
+        \vspace{-1.5em}
+        \begin{abstract}
+          \KOMAoptions{parskip=half}
+          \vspace{-1.5em}
+          \noindent
+          $abstract$
+
+          $if(keywords)$
+          \textbf{\keywordsname:} \textnormal{$for(keywords)$$keywords$$sep$, $endfor$}
+          $endif$
+        \end{abstract}
+        $endif$
+
+    $if(page-twocolumn)$
+      \end{@twocolumnfalse}
+    ]
+    \makeatother
+    $endif$
   }
 
 % ---------------- T A B L E   O F   C O N T E N T   E T C . . ----------------
@@ -213,24 +275,52 @@
   }
   \makeatother
 
+  $if(article)$
+    \makeatletter
+    \renewcommand*\tableofcontents{%
+      \pdfbookmark[$rootlevel$]{\contentsname}{\contentsname}%
+      \toc@heading%
+      \@starttoc{toc}%
+    }
+    \newcommand*\lof@heading{
+      \section*{\listfigurename
+      \@mkboth{\listfigurename}{\listfigurename}}
+    }
+    \renewcommand*\listoffigures{%
+      \pdfbookmark[$rootlevel$]{\listfigurename}{\listfigurename}%
+      \lof@heading%
+      \@starttoc{lof}%
+    }
+    \newcommand*\lot@heading{%
+      \section*{\listtablename
+      \@mkboth{\listtablename}{\listtablename}}
+    }
+    \renewcommand*\listoftables{%
+      \pdfbookmark[$rootlevel$]{\listtablename}{\listtablename}%
+      \lot@heading%
+      \@starttoc{lot}%
+    }
+    \makeatother
+  $endif$
+
+  $if(journal)$
+    % make toc in one-column mode
+  $endif$
+
   \newcommand\toc{
     \resetsecnumdepth
-    \bookmarksetup{startatroot}
+    \bookmarksetupnext{level=$rootlevel$}
     \addtocontents{toc}{\protect\setcounter{tocdepth}{$if(toc-depth)$$toc-depth$$else$3$endif$}}
     \tableofcontents
   }
 
   \newcommand\lof{
-    $if(toc)$
-      \bookmarksetupnext{level=1}
-    $endif$
+    \bookmarksetupnext{level=$rootlevel$}
     \listoffigures
   }
 
   \newcommand\lot{
-    $if(toc)$
-      \bookmarksetupnext{level=1}
-    $endif$
+    \bookmarksetupnext{level=$rootlevel$}
     \listoftables
   }
 
@@ -523,9 +613,10 @@
 % ------------------------------ D O C U M E N T ------------------------------
 \begin{document}
 
-$if(title)$
-  \pdfbookmark[-1]{$title$}{$title$}
-  \maketitle
+$if(article)$
+  \ppptitlemini
+$else$
+  \ppptitle
 $endif$
 
 $body$

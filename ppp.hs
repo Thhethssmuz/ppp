@@ -10,11 +10,20 @@ import System.FilePath
 import System.Exit
 
 render :: [Unprocessed] -> FilePath -> IO ()
-render doc inn = case getType doc of
-  "cv"      -> renderCV (rmType False doc) $ replaceExtension inn "pdf"
-  "report"  -> renderReport (rmType False doc) $ replaceExtension inn "pdf"
-  "default" -> renderReport (rmType False doc) $ replaceExtension inn "pdf"
-  unknown   -> renderReport (rmType True doc) $ replaceExtension inn "pdf"
+render doc inn = let doc' = rmType False doc in case getType doc of
+  "cv"       -> renderCV doc' $ replaceExtension inn "pdf"
+
+  "default"  -> renderReport  doc' False $ replaceExtension inn "pdf"
+
+  "report"   -> renderReport  doc' False $ replaceExtension inn "pdf"
+  "article"  -> renderArticle doc' False $ replaceExtension inn "pdf"
+  "journal"  -> renderJournal doc' False $ replaceExtension inn "pdf"
+
+  "report2"  -> renderReport  doc' True  $ replaceExtension inn "pdf"
+  "article2" -> renderArticle doc' True  $ replaceExtension inn "pdf"
+  "journal2" -> renderJournal doc' True  $ replaceExtension inn "pdf"
+
+  unknown    -> renderReport (rmType True doc) False $ replaceExtension inn "pdf"
 
 main :: IO ()
 main = do
