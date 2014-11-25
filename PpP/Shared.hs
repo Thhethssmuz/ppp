@@ -6,6 +6,7 @@ import Data.Char (isSpace)
 
 data Unprocessed = Markdown String
                  | Macro String String
+                 | Include String [Unprocessed]
                  deriving (Show)
 
 

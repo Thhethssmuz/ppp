@@ -70,10 +70,17 @@ parseUnprocessed s = case parse unprocessed "" s of
 addUnprocessed :: Unprocessed -> StateT [Unprocessed] IO ()
 addUnprocessed (Macro k v) = case k of
   "include"    -> mapM_ includeFile . parseList $ v
-  "appendix"   -> addUnprocessed $ Macro "appendices" v
-  "appendices" -> do
-                  modify (++ [Macro k ""])
-                  mapM_ includeFile . parseList $ v
+
+  "article"    -> do
+                  inc <- lift . mapM prePreProcess . parseList $ v
+                  modify . (++) . map (Include k) $ inc
+  "articles"   -> addUnprocessed $ Macro "article" v
+
+  "appendix"   -> do
+                  inc <- lift . mapM prePreProcess . parseList $ v
+                  modify . (++) . map (Include k) $ inc
+  "appendices" -> addUnprocessed $ Macro "appendix" v
+
   _            -> modify (++ [Macro k v])
 addUnprocessed dp = modify (++ [dp])
 
