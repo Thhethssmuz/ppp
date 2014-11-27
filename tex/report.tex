@@ -575,10 +575,12 @@
 % ------------------------------ D O C U M E N T ------------------------------
 \begin{document}
 
-$if(article)$
-  \ppptitlemini
-$else$
-  \ppptitle
+$if(title)$
+  $if(article)$
+    \ppptitlemini
+  $else$
+    \ppptitle
+  $endif$
 $endif$
 
 $body$
