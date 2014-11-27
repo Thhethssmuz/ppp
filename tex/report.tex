@@ -265,64 +265,26 @@
     \addtocontents{toc}{\protect\setcounter{tocdepth}{\result}}
   }
 
-  % add toc, lof and lot as a pdf bookmark
-  \makeatletter
-  \BeforeTOCHead{%
-    \cleardoublepage
-      \edef\@tempa{%
-        \noexpand\pdfbookmark[0]{\list@fname}{\@currext}%
-      }\@tempa
-  }
-  \makeatother
-
-  $if(article)$
-    \makeatletter
-    \renewcommand*\tableofcontents{%
-      \pdfbookmark[$rootlevel$]{\contentsname}{\contentsname}%
-      \toc@heading%
-      \@starttoc{toc}%
-    }
-    \newcommand*\lof@heading{
-      \section*{\listfigurename
-      \@mkboth{\listfigurename}{\listfigurename}}
-    }
-    \renewcommand*\listoffigures{%
-      \pdfbookmark[$rootlevel$]{\listfigurename}{\listfigurename}%
-      \lof@heading%
-      \@starttoc{lof}%
-    }
-    \newcommand*\lot@heading{%
-      \section*{\listtablename
-      \@mkboth{\listtablename}{\listtablename}}
-    }
-    \renewcommand*\listoftables{%
-      \pdfbookmark[$rootlevel$]{\listtablename}{\listtablename}%
-      \lot@heading%
-      \@starttoc{lot}%
-    }
-    \makeatother
-  $endif$
-
   $if(journal)$
     % make toc in one-column mode
   $endif$
 
+  \makeatletter
   \newcommand\toc{
     \resetsecnumdepth
-    \bookmarksetupnext{level=$rootlevel$}
     \addtocontents{toc}{\protect\setcounter{tocdepth}{$if(toc-depth)$$toc-depth$$else$3$endif$}}
     \tableofcontents
+    \bookmark[dest=\@currentHref,level=$rootlevel$]{\contentsname}
   }
-
   \newcommand\lof{
-    \bookmarksetupnext{level=$rootlevel$}
     \listoffigures
+    \bookmark[dest=\@currentHref,level=$rootlevel$]{\listfigurename}
   }
-
   \newcommand\lot{
-    \bookmarksetupnext{level=$rootlevel$}
     \listoftables
+    \bookmark[dest=\@currentHref,level=$rootlevel$]{\listtablename}
   }
+  \makeatother
 
 % ---------------------------- A P P E N D I C E S ----------------------------
   \usepackage[titletoc,title]{appendix}
