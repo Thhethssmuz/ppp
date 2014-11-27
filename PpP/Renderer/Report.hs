@@ -162,10 +162,9 @@ renderJournal doc twocolumn out = do
                  writer = academicWriter{
                    writerVariables = [
                      ("documentclass", "scrartcl"),
-                     ("page-twocolumn", if twocolumn then "true" else "false"),
                      ("rootlevel", "1"),
                      ("journal", "true")
-                     ],
+                   ] ++ if twocolumn then [("page-twocolumn", "true")] else [],
                    writerChapters = False,
                    writerTemplate = template
                  }
@@ -182,7 +181,7 @@ renderArticle doc twocolumn out = do
                      ("documentclass", "scrartcl"),
                      ("rootlevel", "1"),
                      ("article", "true")
-                     ] ++ if twocolumn then [("page-twocolumn", "true")] else [],
+                   ] ++ if twocolumn then [("page-twocolumn", "true")] else [],
                    writerChapters = False,
                    writerTemplate = template
                  }
@@ -197,10 +196,9 @@ renderReport doc twocolumn out = do
                  writer = academicWriter{
                    writerVariables = [
                      ("documentclass", "scrreprt"),
-                     ("page-twocolumn", if twocolumn then "true" else "false"),
                      ("rootlevel", "0"),
                      ("report", "true")
-                   ],
+                   ] ++ if twocolumn then [("page-twocolumn", "true")] else [],
                    writerChapters = True,
                    writerTemplate = template
                  }
