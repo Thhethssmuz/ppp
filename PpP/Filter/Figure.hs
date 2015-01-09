@@ -154,5 +154,7 @@ processFigures :: Bool -> Inline -> Inline
 processFigures b (Image is to) = wrap . toInline $ fromImage b is to
 processFigures _ x = x
 
-figure :: Bool -> Pandoc -> Pandoc
-figure twocolumn pandoc = walk (processFigures twocolumn) pandoc
+figure :: Pandoc -> Pandoc
+figure pandoc@(Pandoc meta _) =
+  let twocolumn = isJust . lookupMeta "page-twocolumn" $ meta in
+  walk (processFigures twocolumn) pandoc
