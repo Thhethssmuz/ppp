@@ -1,20 +1,27 @@
 % ------------------------ D O C U M E N T   C L A S S ------------------------
   \RequirePackage[hyphens]{url}
 
-  \documentclass[
-    fontsize=$if(font-size)$$font-size$$else$12pt$endif$,
+  \documentclass[]{$documentclass$}
+
+  % page size
+  \KOMAoptions{
     paper=$if(page-size)$$page-size$$else$a4$endif$,
-    pagesize=auto,
-    DIV=$if(page-div)$$page-div$$else$10$endif$,
-    BCOR=0mm,
+    pagesize=auto
+  }
+
+  % page layout
+  \KOMAoptions{
     twoside=$if(page-twoside)$true$else$false$endif$,
     twocolumn=$if(page-twocolumn)$true$else$false$endif$,
-    appendixprefix=true
-    ]{$documentclass$}
+    BCOR=$if(page-bcor)$$page-bcor$$else$2.5cm$endif$,
+    DIV=$if(page-div)$$page-div$$else$10$endif$
+  }
 
 % ----------------------------- F O N T  S P E C ------------------------------
-  \usepackage[T1]{fontenc}
-  \usepackage{lmodern}
+  \KOMAoptions{fontsize=$if(font-size)$$font-size$$else$12pt$endif$}
+
+  %\usepackage[T1]{fontenc}
+  %\usepackage{lmodern}
   \usepackage{amssymb,amsmath}
   \usepackage{fixltx2e}
   \IfFileExists{microtype.sty}{\usepackage{microtype}}{}
@@ -26,36 +33,59 @@
   \setmainfont{$if(main-font)$$main-font$$else$Open Sans$endif$}
   \setsansfont{$if(sans-font)$$sans-font$$else$Open Sans$endif$}
   \setmonofont{$if(mono-font)$$mono-font$$else$Ubuntu Mono$endif$}
-  %$if(math-font)$\setmathfont{$math-font$Gotham Book}$endif$
+  $if(math-font)$\setmathfont{$math-font$}$endif$
   \usepackage{pifont}
 
+  % recalculate page-div after fonts are set
+  \KOMAoptions{DIV=current}\recalctypearea
+
 % ---------------- P A G E   H E A D E R   A N D   F O O T E R ----------------
-  \usepackage{fancyhdr}
   \usepackage{lastpage}
-  \newcommand\lastpage{\pageref{LastPage}}
-  \pagestyle{fancy}
-  \pagenumbering{arabic}
+  \newcommand\lastpagemark{\pageref{LastPage}}
 
   \usepackage{ifthen}
-  \ifthenelse{\equal{$page-header-left$$page-header-centre$$page-header-right$}{}}
-    {\renewcommand{\headrulewidth}{0pt}}{}
+  \ifthenelse{
+    \equal{$page-header-left$$page-header-centre$$page-header-right$}{}
+  }{\usepackage[nouppercase]{scrpage2}
+  }{\usepackage[nouppercase,headsepline]{scrpage2}}
 
-  \fancypagestyle{plain}{
-    \renewcommand{\headrulewidth}{0pt}
-    \fancyhf{}
-    \fancyhead[L]{}
-    \fancyhead[C]{}
-    \fancyhead[R]{}
-    \fancyfoot[L]{$page-footer-left$}
-    \fancyfoot[C]{$if(page-footer-centre)$$page-footer-centre$$else$\itshape \thepage$endif$}
-    \fancyfoot[R]{$page-footer-right$}
-  }
-  \lhead{$page-header-left$}
-  \chead{$page-header-centre$}
-  \rhead{$page-header-right$}
-  \lfoot{$page-footer-left$}
-  \cfoot{$if(page-footer-centre)$$page-footer-centre$$else$\itshape \thepage$endif$}
-  \rfoot{$page-footer-right$}
+  \pagestyle{scrheadings}
+
+  % header and footer font styles
+  \setkomafont{pagehead}{}
+  \setkomafont{pagefoot}{}
+  \setkomafont{pagenumber}{}
+
+  $if(report)$
+  \automark[chapter]{chapter}
+  $endif$
+
+  $if(page-twoside)$
+    \lehead[]{$page-header-left$}
+    \cehead[]{$page-header-centre$}
+    \rehead[]{$page-header-right$}
+    \lohead[]{$page-header-right$}
+    \cohead[]{$page-header-centre$}
+    \rohead[]{$page-header-left$}
+
+    \lefoot[$if(page-footer-left)$$page-footer-left$$else$\itshape \pagemark$endif$]
+           {$if(page-footer-left)$$page-footer-left$$else$\itshape \pagemark$endif$}
+    \cefoot[$page-footer-centre$]{$page-footer-centre$}
+    \refoot[$page-footer-right$]{$page-footer-right$}
+    \lofoot[$page-footer-right$]{$page-footer-right$}
+    \cofoot[$page-footer-centre$]{$page-footer-centre$}
+    \rofoot[$if(page-footer-left)$$page-footer-left$$else$\itshape \pagemark$endif$]
+           {$if(page-footer-left)$$page-footer-left$$else$\itshape \pagemark$endif$}
+  $else$
+    \ohead[]{$page-header-left$}
+    \chead[]{$page-header-centre$}
+    \ihead[]{$page-header-right$}
+
+    \ofoot[$page-footer-left$]{$page-footer-left$}
+    \cfoot[$if(page-footer-centre)$$page-footer-centre$$else$\itshape \pagemark$endif$]
+          {$if(page-footer-centre)$$page-footer-centre$$else$\itshape \pagemark$endif$}
+    \ifoot[$page-footer-right$]{$page-footer-right$}
+  $endif$
 
 % ---------------------------------- M I S C ----------------------------------
   \usepackage{listings}
@@ -120,7 +150,7 @@
 % ---------------------------- P A R A G R A P H S ----------------------------
   %\setlength{\parindent}{0pt}
   %\setlength{\parskip}{6pt plus 2pt minus 1pt}
-  %\setlength{\emergencystretch}{3em}
+  \setlength{\emergencystretch}{3em}
 
   \KOMAoptions{parskip=half}
 
@@ -204,7 +234,7 @@
 
 
   \newcommand\ppptitle{
-    \KOMAoptions{titlepage=true}
+    \KOMAoptions{titlepage=firstiscover}% titlepage=true}
 
     \pdfbookmark[-1]{$title$}{$title$}
     \maketitle
@@ -287,6 +317,7 @@
   \makeatother
 
 % ---------------------------- A P P E N D I C E S ----------------------------
+  \KOMAoptions{appendixprefix=true}
   \usepackage[titletoc,title]{appendix}
   \renewcommand\appendices{
     \bookmarksetupnext{level=-1}
@@ -574,6 +605,13 @@
 
 % ------------------------------ D O C U M E N T ------------------------------
 \begin{document}
+
+$if(leading-blank-page)$
+  \thispagestyle{empty}
+  \mbox{}
+  \clearpage
+  \setcounter{page}{1}
+$endif$
 
 $if(title)$
   $if(article)$
