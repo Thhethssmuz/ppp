@@ -80,8 +80,8 @@ config (Macro k v)   = case k of
   "keywords"        -> addOnce k $ metaList k v
   "abstract"        -> addOnce k $ metaBlock k v
 
-  "number-sections" -> add k $ inlineFunc' "numbersections" v
-  "toc-depth"       -> add k $ inlineFunc' "tocdepth" v
+  "numbersections"  -> add k $ inlineFunc' k v
+  "tocdepth"        -> add k $ inlineFunc' "tocdepth" v
 
   "toc"             -> addOnce k $ inlineFunc k ""
   "lof"             -> addOnce k $ inlineFunc k ""
@@ -115,13 +115,14 @@ config (Macro k v)   = case k of
   "bibliography\'"  -> addOnce k $ metaVar "bibliography" v ++
                                    inlineFunc "bibliography" ""
 
-  "page-size"       -> addOnce k $ metaVar k v
-  "page-div"        -> addOnce k $ metaVar k v
+  "pagesize"        -> addOnce k $ metaVar "page-size" v
+  "pagediv"         -> addOnce k $ metaVar "page-div" v
 
-  "font-size"       -> addOnce k $ metaVar k v
-  "main-font"       -> addOnce k $ metaVar k v
-  "sans-font"       -> addOnce k $ metaVar k v
-  "mono-font"       -> addOnce k $ metaVar k v
+  "fontsize"        -> addOnce k $ metaVar "font-size" v
+  "mainfont"        -> addOnce k $ metaVar "main-font" v
+  "sansfont"        -> addOnce k $ metaVar "sans-font" v
+  "monofont"        -> addOnce k $ metaVar "mono-font" v
+  "mathfont"        -> addOnce k $ metaVar "math-font" v
 
   _                 -> add "err" . pppErr $ "unknown macro " ++ k
 config (Include k _) = add "err" . pppErr $ "unknown macro " ++ k
