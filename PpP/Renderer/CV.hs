@@ -23,7 +23,7 @@ import System.FilePath
 import System.Exit
 
 
-configure :: Unprocessed -> State PpP ()
+configure :: Unprocessed -> StateT PpP IO ()
 configure (Markdown s) = add "" s
 configure (Macro k v)  = case k of
 
@@ -53,7 +53,7 @@ renderCV :: [Unprocessed] -> FilePath -> IO ()
 renderCV doc out = do
   template  <- readFile =<< getDataFileName ("tex" </> "cv.tex")
 
-  let ppp    = execState (mapM_ configure doc) emptyPpP{
+  ppp       <- execStateT (mapM_ configure doc) emptyPpP{
                  reader = def{
                    readerSmart = True,
                    readerStandalone = True,

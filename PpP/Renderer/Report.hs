@@ -25,7 +25,7 @@ import System.Exit
 
 
 
-config :: Unprocessed -> State PpP ()
+config :: Unprocessed -> StateT PpP IO ()
 config (Markdown s)  = add "" s
 config (Macro k v)   = case k of
 
@@ -123,7 +123,7 @@ config (Include k v) = case k of
 renderArticle :: [Unprocessed] -> FilePath -> IO ()
 renderArticle doc out = do
   template  <- readFile =<< getDataFileName ("tex" </> "report.tex")
-  let ppp    = execState (mapM_ config doc) academicPpP{
+  ppp       <- execStateT (mapM_ config doc) academicPpP{
                  writer = academicWriter{
                    writerVariables = [
                      ("documentclass", "scrartcl"),
@@ -140,7 +140,7 @@ renderArticle doc out = do
 renderReport :: [Unprocessed] -> FilePath -> IO ()
 renderReport doc out = do
   template  <- readFile =<< getDataFileName ("tex" </> "report.tex")
-  let ppp    = execState (mapM_ config doc) academicPpP{
+  ppp       <- execStateT (mapM_ config doc) academicPpP{
                  writer = academicWriter{
                    writerVariables = [
                      ("documentclass", "scrreprt"),
