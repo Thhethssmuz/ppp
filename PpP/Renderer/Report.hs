@@ -69,6 +69,15 @@ config (Macro k v)   = case k of
                            "twoside"   -> addOnce x $ metaVar "page-twoside" "true"
                            "twocolumn" -> addOnce x $ metaVar "page-twocolumn" "true"
                            _           -> add "err" . pppErr $ "unknown argument '" ++ x ++ "' applied to page macro"
+  "pagesize"        -> addOnce k $ metaVar "page-size" v
+  "pagediv"         -> addOnce k $ metaVar "page-div" v
+  "pagebcor"        -> addOnce k $ metaVar "page-bcor" v
+
+  "fontsize"        -> addOnce k $ metaVar "font-size" v
+  "fontmain"        -> addOnce k $ metaVar "main-font" v
+  "fontsans"        -> addOnce k $ metaVar "sans-font" v
+  "fontmono"        -> addOnce k $ metaVar "mono-font" v
+  "fontmath"        -> addOnce k $ metaVar "math-font" v
 
   "titlehead"       -> addOnce k $ metaBlock k v
   "subject"         -> addOnce k $ metaBlock k v
@@ -87,14 +96,9 @@ config (Macro k v)   = case k of
   "lof"             -> addOnce k $ inlineFunc k ""
   "lot"             -> addOnce k $ inlineFunc k ""
 
-  "appendices"      -> addOnce' k $ inlineFunc k ""
-
   "csl"             -> addOnce k $ metaVar k v
 
-  "notes"           -> do
-                       addOnce k $ metaVar "notes-heading" "true"
-                       config . Macro "notes\'" $ v
-  "notes\'"         -> let v' = map toLower v in
+  "notes"           -> let v' = map toLower v in
                        addOnce k $ inlineFunc "notes" "" ++
                        case v' of
                          "simple"  -> metaVar "notes-chapter" "true"
@@ -104,28 +108,16 @@ config (Macro k v)   = case k of
                          _         -> metaVar "notes" "true" ++
                                       pppErr ("unknown argument " ++ v' ++
                                               " applied to macro notes")
-  "citations"       -> do
-                       addOnce k $ metaVar "cites-heading" "true"
-                       config . Macro "citations\'" $ v
-  "citations\'"     -> addOnce k $ metaVar "cites" "true" ++
-                                   inlineFunc "citations" ""
-  "bibliography"    -> do
-                       addOnce k $ metaVar "bib-heading" "true"
-                       config . Macro "bibliography\'" $ v
-  "bibliography\'"  -> addOnce k $ metaVar "bibliography" v ++
-                                   inlineFunc "bibliography" ""
 
-  "pagesize"        -> addOnce k $ metaVar "page-size" v
-  "pagediv"         -> addOnce k $ metaVar "page-div" v
+  "bibliography"    -> addOnce k $ metaList k v ++ inlineFunc ("ppp" ++ k) ""
 
-  "fontsize"        -> addOnce k $ metaVar "font-size" v
-  "mainfont"        -> addOnce k $ metaVar "main-font" v
-  "sansfont"        -> addOnce k $ metaVar "sans-font" v
-  "monofont"        -> addOnce k $ metaVar "mono-font" v
-  "mathfont"        -> addOnce k $ metaVar "math-font" v
+  "bib-flush-hack"  -> add k $ metaVar k "true"
 
   _                 -> add "err" . pppErr $ "unknown macro " ++ k
-config (Include k _) = add "err" . pppErr $ "unknown macro " ++ k
+
+config (Include k v) = case k of
+  _                 -> add "err" . pppErr $ "unknown macro " ++ k
+
 
 
 renderArticle :: [Unprocessed] -> FilePath -> IO ()
@@ -167,10 +159,9 @@ renderReport doc out = do
 pppToPandoc :: PpP -> String -> IO Pandoc
 pppToPandoc ppp prefix = do
   pandoc <- fmap toTex
-          . wikiref'
+          . reference'
           . numberRef
           . figure
-          . linksAsNotes
           . readMarkdown (reader ppp)
           $ document ppp
   printErrors pandoc
@@ -179,6 +170,7 @@ pppToPandoc ppp prefix = do
 renderPDF :: Pandoc -> WriterOptions -> String -> IO ()
 renderPDF pandoc writer' out = do
   putStrLn $ "rendering " ++ out
+
   pdf <- makePDF "xelatex" writeLaTeX writer' pandoc
   case pdf of
     Left err -> do
