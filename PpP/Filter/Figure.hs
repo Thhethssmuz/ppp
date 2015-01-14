@@ -44,7 +44,7 @@ processTarget :: Bool -> Target -> (Scale, Pos, [FilePath], Ref)
 processTarget multicol (fp, r) =
   let  fps = splitOn "%20" fp in
   case parse (parseLoc multicol) "" (last fps) of
-    Left    _   -> (1.0, if multicol then C SF else C H, fps, r)
+    Left    _   -> (1.0, C H, fps, r)
     Right (s,p) -> (s / 100.0, p, init fps, r)
 
 
