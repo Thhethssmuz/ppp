@@ -162,6 +162,7 @@ pppToPandoc ppp prefix = do
           . reference'
           . numberRef
           . figure
+          . multicol
           . readMarkdown (reader ppp)
           $ document ppp
   printErrors pandoc
