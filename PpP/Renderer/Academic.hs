@@ -1,4 +1,4 @@
-module PpP.Renderer.Report (renderReport, renderArticle) where
+module PpP.Renderer.Academic (renderReport, renderArticle) where
 
 import PpP.Err
 import PpP.Filter
