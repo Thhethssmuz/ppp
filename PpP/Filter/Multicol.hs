@@ -16,17 +16,17 @@ wrap b = [ tex $ "\\end{pppmulticol}",
            b,
            tex $ "\\begin{pppmulticol}" ]
 
-columnize :: Int -> Block -> Block
-columnize 1 b = b
-columnize n h@(Header 1 _ _) = Div ([],[],[]) $ wrap h
-columnize n b = b
+columnize :: Bool -> Int -> Block -> Block
+columnize _    1 b                = b
+columnize True n h@(Header 1 _ _) = Div ([],[],[]) $ wrap h
+columnize _    n b                = b
 
 getPageColumns :: Pandoc -> Int
 getPageColumns (Pandoc meta _) =
   maybe 1 (parseCols . stringify') . lookupMeta "page-columns" $ meta
 
-multicol :: Pandoc -> Pandoc
-multicol pandoc = walk (columnize . getPageColumns $ pandoc) pandoc
+multicol :: Bool -> Pandoc -> Pandoc
+multicol m pandoc = walk (columnize m . getPageColumns $ pandoc) pandoc
 
 stringify' :: MetaValue -> String
 stringify' (MetaString s) = s
