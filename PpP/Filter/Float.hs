@@ -29,6 +29,12 @@ parsePercent = f . reads
         f [(f', "%")] = f' / 100
         f _           = 1
 
+parsePercent' :: String -> Maybe Float
+parsePercent' = f . reads
+  where f [(f', "")]  = Just f'
+        f [(f', "%")] = Just $ f' / 100
+        f _           = Nothing
+
 tex = RawInline (Format "tex")
 
 when' :: Bool -> (a -> a) -> a -> a
@@ -369,24 +375,37 @@ fixCBAttr (i,cs,as) =
 -------------------------------------------------------------------------------
 
 transformI :: Inline -> Inline
-transformI (Image is (url, title)) =
+transformI (Image _ (url, title)) =
   let (us, (i,cs,as)) = splitUrlAttr . unwords . splitOn "%20" $ url
-      (cp:cps) = splitCaptions is
-      i'       = if title == "fig:" then i else drop 4 title
-      inner    = do
-        (u,c,l) <- zip3 us (map wrapCaptionI $ cps ++ repeat [])
-                 . zipWith (++) (repeat $ i' ++ "-") 
-                 . map ((:"") . toEnum) $ [97..]
-        return . Span (l,["sub","box"],[]) $ [
-                   tex $ "\\includegraphics[width=\\linewidth]{"++u++"}"] ++ c
-
-  in Span (i',"auto":"figure":"box":cs,as) $ inner ++ wrapCaptionI cp
+      width = case lookup "width" as of
+                Nothing -> ""
+                Just x  -> case parsePercent' x of
+                  Nothing -> "width=" ++ x
+                  Just y  -> "width=" ++ showF y ++ "\\linewidth"
+      inner = do
+        u <- us
+        return . tex $ "\\includegraphics[" ++ width ++ "]{" ++ u ++ "}"
+  in Span ([],[],[]) inner
 
 transformI i = i
 
 -------------------------------------------------------------------------------
 
 transformB :: Block -> Block
+transformB (Para [Image is (url, title)]) =
+  let (us, (i,cs,as)) = splitUrlAttr . unwords . splitOn "%20" $ url
+      (cp:cps) = splitCaptions is
+      i'       = if title == "fig:" then i else drop 4 title
+      inner    = do
+      (u,c,l) <- zip3 us (map wrapCaptionI $ cps ++ repeat [])
+               . zipWith (++) (repeat $ i' ++ "-")
+               . map ((:"") . toEnum) $ [97..]
+      return . Span (l,["sub","box"],[]) $ [
+                 tex $ "\\includegraphics[width=\\linewidth]{"++u++"}"] ++ c
+
+  in Para [Span (i',"auto":"figure":"box":cs,as) $ inner ++ wrapCaptionI cp]
+
+
 transformB (Table is alig space heads cols) =
   let (cp, (i,cs,as)) = splitCaptionAttr is
       cp' = if any ((==) $ stringify cp) ["", " "] then [] else [Plain [Span ([],["caption"],[]) cp]]
