@@ -79,7 +79,18 @@ config (Macro k v)   = case k of
   "fontmono"        -> addOnce k $ metaVar "mono-font" v
   "fontmath"        -> addOnce k $ metaVar "math-font" v
 
-  "titlehead"       -> addOnce k $ metaBlock k v
+  "titlehead"       -> let xs = parseList v in case length xs of
+                         0 -> return ()
+                         1 -> addOnce k $ metaBlock "title-head-centre" (head xs)
+                         2 -> addOnce k $ metaBlock "title-head-left"   (head xs) ++
+                                          metaBlock "title-head-right"  (last xs)
+                         3 -> addOnce k $ metaBlock "title-head-left"   (head xs) ++
+                                          metaBlock "title-head-centre" (xs !! 1) ++
+                                          metaBlock "title-head-right"  (last xs)
+                         _ -> do
+                              add "err" . pppErr $ "to many arguments applied to macro " ++ k
+                              config . Macro k . unlines . take 3 $ xs
+
   "subject"         -> addOnce k $ metaBlock k v
   "title"           -> addOnce k $ metaBlock k v
   "subtitle"        -> addOnce k $ metaBlock k v
@@ -160,11 +171,13 @@ renderReport doc out = do
 
 pppToPandoc :: PpP -> String -> IO Pandoc
 pppToPandoc ppp prefix = do
+  let m = writerChapters . writer $ ppp
+
   pandoc <- fmap toTex
           . reference'
           . numberRef
           . float
-          . multicol
+          . multicol m
           . readMarkdown (reader ppp)
           $ document ppp
 
