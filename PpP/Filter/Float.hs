@@ -397,11 +397,11 @@ transformB (Para [Image is (url, title)]) =
       (cp:cps) = splitCaptions is
       i'       = if title == "fig:" then i else drop 4 title
       inner    = do
-      (u,c,l) <- zip3 us (map wrapCaptionI $ cps ++ repeat [])
-               . zipWith (++) (repeat $ i' ++ "-")
-               . map ((:"") . toEnum) $ [97..]
-      return . Span (l,["sub","box"],[]) $ [
-                 tex $ "\\includegraphics[width=\\linewidth]{"++u++"}"] ++ c
+        (u,c,l) <- zip3 us (map wrapCaptionI $ cps ++ repeat [])
+                 . zipWith (++) (repeat $ i' ++ "-")
+                 . map ((:"") . toEnum) $ [97..]
+        return . Span (l,["sub","box"],[]) $ [
+                   tex $ "\\includegraphics[width=\\linewidth]{"++u++"}"] ++ c
 
   in Para [Span (i',"auto":"figure":"box":cs,as) $ inner ++ wrapCaptionI cp]
 
