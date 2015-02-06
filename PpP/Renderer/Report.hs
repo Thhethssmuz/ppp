@@ -23,7 +23,7 @@ import Paths_ppp
 import System.FilePath
 import System.Exit
 
-
+-------------------------------------------------------------------------------
 
 config :: Unprocessed -> StateT PpP IO ()
 config (Markdown s)  = add "" s
@@ -64,11 +64,11 @@ config (Macro k v)   = case k of
                               add "err" . pppErr $ "to many arguments applied to macro " ++ k
                               config . Macro k . unlines . take 3 $ fs
 
-  "page"            -> forM_ (map (map toLower) . parseList $ v) $ \x -> do
+  "page"            -> forM_ (map (map toLower) . parseList $ v) $ \x ->
                          case x of
                            "twoside"   -> addOnce x $ metaVar "page-twoside" "true"
-                           "twocolumn" -> addOnce x $ metaVar "page-twocolumn" "true"
                            _           -> add "err" . pppErr $ "unknown argument '" ++ x ++ "' applied to page macro"
+  "pagecols"        -> addOnce k $ metaVar "page-columns" v
   "pagesize"        -> addOnce k $ metaVar "page-size" v
   "pagediv"         -> addOnce k $ metaVar "page-div" v
   "pagebcor"        -> addOnce k $ metaVar "page-bcor" v
@@ -90,11 +90,13 @@ config (Macro k v)   = case k of
   "abstract"        -> addOnce k $ metaBlock k v
 
   "numbersections"  -> add k $ inlineFunc' k v
-  "tocdepth"        -> add k $ inlineFunc' "tocdepth" v
+  "tocdepth"        -> add k $ inlineFunc' k v
 
-  "toc"             -> addOnce k $ inlineFunc k ""
-  "lof"             -> addOnce k $ inlineFunc k ""
-  "lot"             -> addOnce k $ inlineFunc k ""
+  "tableofcontents" -> addOnce k $ inlineFunc  ("ppp" ++ k) ""
+  "listoffigures"   -> addOnce k $ inlineFunc' ("ppp" ++ "listof") "figure"
+  "listoftables"    -> addOnce k $ inlineFunc' ("ppp" ++ "listof") "table"
+  "listofprograms"  -> addOnce k $ inlineFunc' ("ppp" ++ "listof") "program"
+  "listofexamples"  -> addOnce k $ inlineFunc' ("ppp" ++ "listof") "example"
 
   "csl"             -> addOnce k $ metaVar k v
 
@@ -118,7 +120,7 @@ config (Macro k v)   = case k of
 config (Include k v) = case k of
   _                 -> add "err" . pppErr $ "unknown macro " ++ k
 
-
+-------------------------------------------------------------------------------
 
 renderArticle :: [Unprocessed] -> FilePath -> IO ()
 renderArticle doc out = do
@@ -154,17 +156,18 @@ renderReport doc out = do
   pandoc    <- pppToPandoc ppp ""
   renderPDF pandoc (writer ppp) out
 
-
+-------------------------------------------------------------------------------
 
 pppToPandoc :: PpP -> String -> IO Pandoc
 pppToPandoc ppp prefix = do
   pandoc <- fmap toTex
           . reference'
           . numberRef
-          . figure
+          . float
           . multicol
           . readMarkdown (reader ppp)
           $ document ppp
+
   printErrors pandoc
   return pandoc
 

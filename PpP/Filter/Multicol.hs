@@ -1,4 +1,4 @@
-module PpP.Filter.Multicol (multicol) where
+module PpP.Filter.Multicol (multicol, getPageColumns) where
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk
@@ -9,19 +9,24 @@ parseCols = f . reads
   where f [(x, _)] = if x > 0 then x else 1
         f _ = 1
 
-tex = RawBlock (Format "tex")
+tex       = RawBlock (Format "tex")
 
-colomnize :: Int -> Block -> Block
-colomnize 1 b = b
-colomnize n h@(Header 1 _ _) = Div ([],[],[]) $ [
-  tex "\\end{multicols}", h, tex $ "\\begin{multicols}{" ++ show n ++ "}"]
-colomnize n b = b
+wrap :: Block -> [Block]
+wrap b = [ tex $ "\\end{pppmulticol}",
+           b,
+           tex $ "\\begin{pppmulticol}" ]
+
+columnize :: Int -> Block -> Block
+columnize 1 b = b
+columnize n h@(Header 1 _ _) = Div ([],[],[]) $ wrap h
+columnize n b = b
+
+getPageColumns :: Pandoc -> Int
+getPageColumns (Pandoc meta _) =
+  maybe 1 (parseCols . stringify') . lookupMeta "page-columns" $ meta
 
 multicol :: Pandoc -> Pandoc
-multicol pandoc@(Pandoc meta _) = 
-  let c = maybe 1 (parseCols . stringify')
-        . lookupMeta "page-columns" $ meta
-  in      walk (colomnize c) pandoc
+multicol pandoc = walk (columnize . getPageColumns $ pandoc) pandoc
 
 stringify' :: MetaValue -> String
 stringify' (MetaString s) = s
