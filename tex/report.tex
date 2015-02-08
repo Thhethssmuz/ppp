@@ -12,32 +12,29 @@
   % page layout
   \KOMAoptions{
     twoside=$if(page-twoside)$true$else$false$endif$,
-    twocolumn=$if(page-twocolumn)$true$else$false$endif$,
-    BCOR=$if(page-bcor)$$page-bcor$$else$2.5cm$endif$,
-    DIV=$if(page-div)$$page-div$$else$10$endif$
+    twocolumn=false,
+    DIV=$if(page-div)$$page-div$$else$10$endif$,
+    BCOR=$if(page-bcor)$$page-bcor$$else$0mm$endif$
   }
 
 % ----------------------------- F O N T  S P E C ------------------------------
   \KOMAoptions{fontsize=$if(font-size)$$font-size$$else$12pt$endif$}
 
-  %\usepackage[T1]{fontenc}
-  %\usepackage{lmodern}
+  \usepackage[T1]{fontenc}
+  \usepackage{lmodern}
   \usepackage{amssymb,amsmath}
   \usepackage{fixltx2e}
   \IfFileExists{microtype.sty}{\usepackage{microtype}}{}
   \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
-  \usepackage{mathspec} % imports fontspec
+  \usepackage{mathspec}% imports fontspec
   \usepackage{xltxtra,xunicode}
   \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
-  \newcommand{\euro}{â‚¬}
+  %\newcommand{\euro}{â‚¬}
   \setmainfont{$if(main-font)$$main-font$$else$Open Sans$endif$}
   \setsansfont{$if(sans-font)$$sans-font$$else$Open Sans$endif$}
   \setmonofont{$if(mono-font)$$mono-font$$else$Ubuntu Mono$endif$}
   $if(math-font)$\setmathfont{$math-font$}$endif$
   \usepackage{pifont}
-
-  % recalculate page-div after fonts are set
-  \KOMAoptions{DIV=current}\recalctypearea
 
 % ---------------- P A G E   H E A D E R   A N D   F O O T E R ----------------
   \usepackage{lastpage}
@@ -61,90 +58,81 @@
   $endif$
 
   $if(page-twoside)$
-    \lehead[]{$page-header-left$}
-    \cehead[]{$page-header-centre$}
-    \rehead[]{$page-header-right$}
-    \lohead[]{$page-header-right$}
-    \cohead[]{$page-header-centre$}
-    \rohead[]{$page-header-left$}
+  \lehead[]{$page-header-left$}
+  \cehead[]{$page-header-centre$}
+  \rehead[]{$page-header-right$}
+  \lohead[]{$page-header-right$}
+  \cohead[]{$page-header-centre$}
+  \rohead[]{$page-header-left$}
 
-    \lefoot[$if(page-footer-left)$$page-footer-left$$else$\itshape \pagemark$endif$]
-           {$if(page-footer-left)$$page-footer-left$$else$\itshape \pagemark$endif$}
-    \cefoot[$page-footer-centre$]{$page-footer-centre$}
-    \refoot[$page-footer-right$]{$page-footer-right$}
-    \lofoot[$page-footer-right$]{$page-footer-right$}
-    \cofoot[$page-footer-centre$]{$page-footer-centre$}
-    \rofoot[$if(page-footer-left)$$page-footer-left$$else$\itshape \pagemark$endif$]
-           {$if(page-footer-left)$$page-footer-left$$else$\itshape \pagemark$endif$}
+  \lefoot[$if(page-footer-left)$$page-footer-left$$else$\itshape \pagemark$endif$]
+         {$if(page-footer-left)$$page-footer-left$$else$\itshape \pagemark$endif$}
+  \cefoot[$page-footer-centre$]{$page-footer-centre$}
+  \refoot[$page-footer-right$]{$page-footer-right$}
+  \lofoot[$page-footer-right$]{$page-footer-right$}
+  \cofoot[$page-footer-centre$]{$page-footer-centre$}
+  \rofoot[$if(page-footer-left)$$page-footer-left$$else$\itshape \pagemark$endif$]
+         {$if(page-footer-left)$$page-footer-left$$else$\itshape \pagemark$endif$}
   $else$
-    \ohead[]{$page-header-left$}
-    \chead[]{$page-header-centre$}
-    \ihead[]{$page-header-right$}
+  \ohead[]{$page-header-left$}
+  \chead[]{$page-header-centre$}
+  \ihead[]{$page-header-right$}
 
-    \ofoot[$page-footer-left$]{$page-footer-left$}
-    \cfoot[$if(page-footer-centre)$$page-footer-centre$$else$\itshape \pagemark$endif$]
-          {$if(page-footer-centre)$$page-footer-centre$$else$\itshape \pagemark$endif$}
-    \ifoot[$page-footer-right$]{$page-footer-right$}
+  \ofoot[$page-footer-left$]{$page-footer-left$}
+  \cfoot[$if(page-footer-centre)$$page-footer-centre$$else$\itshape \pagemark$endif$]
+        {$if(page-footer-centre)$$page-footer-centre$$else$\itshape \pagemark$endif$}
+  \ifoot[$page-footer-right$]{$page-footer-right$}
   $endif$
 
 % ---------------------------------- M I S C ----------------------------------
   \usepackage{listings}
-  \usepackage{longtable,booktabs}% tables
-  \usepackage{lipsum}% for testing
+  \usepackage{longtable,booktabs}
+  \usepackage{lipsum}
+  \usepackage{fp}
+  \usepackage{xparse}
+  \usepackage{hyperref}
+  \usepackage{bookmark}
+  \usepackage[normalem]{ulem}
+
+  % convenience function for class dependant clearpage
+  \newcommand\pppclear{
+    $if(report)$
+    \clearpage
+    $endif$
+
+    $if(journal)$
+    \clearpage
+    $endif$
+
+    $if(book)$
+    \cleardoublepage
+    $endif$
+  }
 
 % ------------------------------ L A N G U A G E ------------------------------
   $if(lang)$
-    \usepackage{polyglossia}
-    \setmainlanguage{$lang$}
+  \usepackage{polyglossia}
+  \setmainlanguage{$lang$}
   $endif$
 
   \AtBeginDocument{
-    \defcaptionname{english,british,american}{\citesname}{Citations}
+    \defcaptionname{norsk,nynorsk}{\abstractname}{Abstrakt}
+    \defcaptionname{norsk,nynorsk}{\appendixname}{Vedlegg}
+    \defcaptionname{english,brittesh,american}{\appendixpagename}{Appendices}
+    \defcaptionname{norsk,nynorsk}{\appendixpagename}{Vedlegg}
+    \defcaptionname{norsk,nynorsk}{\appendixtocname}{Vedlegg}
+    \defcaptionname{english,british,american}{\examplename}{Example}
+    \defcaptionname{norsk,nynorsk}{\examplename}{Eksempel}
     \defcaptionname{english,british,american}{\keywordsname}{Keywords}
-    \defcaptionname{english}{\glossaryname}{Glossary}
-
-    \defcaptionname{norsk}{\abstractname}{Abstrakt}
-    \defcaptionname{norsk}{\appendixname}{Vedlegg}
-    \defcaptionname{norsk}{\appendixpagename}{Vedlegg}
-    \defcaptionname{norsk}{\appendixtocname}{Vedlegg}
-    \defcaptionname{norks}{\citesname}{Sitater}
     \defcaptionname{norsk}{\keywordsname}{Nøkelord}
-    \defcaptionname{norsk}{\notesname}{Noter}
-
-    \defcaptionname{nynorsk}{\abstractname}{Abstrakt}
-    \defcaptionname{nynorsk}{\appendixname}{Vedlegg}
-    \defcaptionname{nynorsk}{\appendixpagename}{Vedlegg}
-    \defcaptionname{nynorsk}{\appendixtocname}{Vedlegg}
-    \defcaptionname{nynorks}{\citesname}{Sitat}
     \defcaptionname{nynorsk}{\keywordsname}{Nykelord}
+    \defcaptionname{english,british,american}{\listexamplename}{List of Examples}
+    \defcaptionname{norsk,nynorsk}{\listexamplename}{Eksempel}
+    \defcaptionname{english,british,american}{\listexamplename}{List of Programs}
+    \defcaptionname{norsk,nynorsk}{\listprogramename}{Program}
+    \defcaptionname{norsk}{\notesname}{Noter}
     \defcaptionname{nynorsk}{\notesname}{Notar}
-
-    $if(abstractname)$\renewcommand\abstractname{$abstractname$}$endif$
-    $if(alsoname)$\renewcommand\alsoname{$alsoname$}$endif$
-    $if(appendixname)$\renewcommand\appendixname{$appendixname$}$endif$
-    $if(appendixpagename)$\renewcommand\appendixpagename{$appendixpagename$}$endif$
-    $if(appendixtocname)$\renewcommand\appendixtocname{$appendixtocname$}$endif$
-    $if(bibname)$\renewcommand\bibname{$bibname$}$endif$
-    $if(ccname)$\renewcommand\ccname{$ccname$}$endif$
-    $if(chaptername)$\renewcommand\chaptername{$chaptername$}$endif$
-    $if(citesname)$\renewcommand\citesname{$citesname$}$endif$
-    $if(contentsname)$\renewcommand\contentsname{$contentsname$}$endif$
-    $if(enclname)$\renewcommand\enclname{$enclname$}$endif$
-    $if(figurename)$\renewcommand\figurename{$figurename$}$endif$
-    $if(glossaryname)$\renewcommand\glossaryname{$glossaryname$}$endif$
-    $if(headtoname)$\renewcommand\headtoname{$headtoname$}$endif$
-    $if(indexname)$\renewcommand\indexname{$indexname$}$endif$
-    $if(keywordsname)$\renewcommand\keywordsname{$keywordsname$}$endif$
-    $if(listfigurename)$\renewcommand\listfigurename{$listfigurename$}$endif$
-    $if(listtablename)$\renewcommand\listtablename{$listtablename$}$endif$
-    $if(notesname)$\renewcommand\notesname{$notesname$}$endif$
-    $if(pagename)$\renewcommand\pagename{$pagename$}$endif$
-    $if(partname)$\renewcommand\partname{$partname$}$endif$
-    $if(prefacename)$\renewcommand\prefacename{$prefacename$}$endif$
-    $if(proofname)$\renewcommand\proofname{$proofname$}$endif$
-    $if(refname)$\renewcommand\refname{$refname$}$endif$
-    $if(seename)$\renewcommand\seename{$seename$}$endif$
-    $if(tablename)$\renewcommand\tablename{$tablename$}$endif$
+    \defcaptionname{english,british,american,norks,nynorsk}{\programname}{Program}
   }
 
 % ---------------------------- P A R A G R A P H S ----------------------------
@@ -156,42 +144,41 @@
 
 % ---------------------- S E C T I O N   S E T T I N G S ----------------------
   %\KOMAoptions{
-  %  chapterprefix=false,
-  %  headings=openany
+  %  chapterprefix=true, %false,
+  %  headings=openany %open? for book
   %}
 
-  \usepackage[]{fp}
-
-  \newcommand\resetsecnumdepth{
-    \FPeval{\result}{clip($if(number-sections)$$number-sections$$else$3$endif$-1)}
-    \setcounter{secnumdepth}{\result}
-  }
+  % default no numbering of sections
+  \setcounter{secnumdepth}{-2}
 
   % inline section number function
-  \newcommand\numbersections[1]{
-    \FPeval{\result}{clip(#1 - 1)}
+  \newcommand\numdepth[1]{
+    \FPeval{\result}{clip(#1 $if(article)$$else$- 1$endif$)}
     \setcounter{secnumdepth}{\result}
   }
 
 % --------------------------------- L I N K S ---------------------------------
-  % Supposedly unicode breakes with xetex?
-  \usepackage[setpagesize=false,unicode=false,xetex]{hyperref}
+  \hypersetup{
+    setpagesize=false,
+    unicode=false,
+    xetex
+  }
+
   \hypersetup{
     breaklinks=true,
-    bookmarks=true,
     colorlinks=true,
     urlcolor=blue,
     linkcolor=black,
     pdfborder={0 0 0}
   }
 
-  \let\oldhref=\href
+  \hypersetup{
+    bookmarks=true,
+    bookmarksopen=true,
+    bookmarksdepth=3
+  }
 
-  $if(links-as-notes)$
-    \renewcommand{\href}[2]{#2\footnote{\url{#1}}}
-  $endif$
-
-% -------------------------------- I M A G E S --------------------------------
+% -------------------------------- B L O C K S --------------------------------
   \usepackage{multicol}
   \usepackage{graphicx}
   \usepackage{float}
@@ -200,19 +187,71 @@
   \usepackage{subcaption}
   \usepackage{dblfloatfix}
 
-  $if(page-twocolumn)$
-    %\renewenvironment{figure}[1]{\begin{figure*}[tbp]}{\end{figure*}}
+  \setcapindent{1em}
+  \captionsetup{labelfont={bf,small},margin=1em}
+  \captionsetup[subfigure]{margin=0.5em}
+  \captionsetup[subtable]{margin=0.5em}
 
-  %\begin{strip}
-  %  \captionof{table}{Erste Tabelle}
-  %  \centering
-  %  \rule{8cm}{4.5cm}
-  %\end{strip}
+  \newfloat{program}{tbh}{prog}[$if(report)$chapter$else$section$endif$]
+  \floatname{program}{\programname}
+  \DeclareCaptionSubType{program}
+  \captionsetup[subprogram]{margin=0.5em}
 
+  \newfloat{example}{tbh}{ex}[$if(report)$chapter$else$section$endif$]
+  \floatname{example}{\examplename}
+  \DeclareCaptionSubType{example}
+  \captionsetup[subexample]{margin=0.5em}
+
+  \newfloat{misc}{tbh}{misc}[$if(report)$chapter$else$section$endif$]
+  \DeclareCaptionSubType*{misc}
+  \captionsetup[misc]{indention=0em,margin=1em}
+  \captionsetup[submisc]{indention=0em,margin=0.5em}
+
+  % wrapper for multicols
+  \newenvironment{pppmulticol}
+    {$if(page-columns)$\begin{multicols}{$page-columns$}$endif$}
+    {$if(page-columns)$\end{multicols}$endif$}
+
+  $if(highlighting-macros)$
+  $highlighting-macros$
   $endif$
 
+  % fix for longtable table counter bug
+  \makeatletter
+  \newif\ifLT@nocaption
+  \preto\longtable{\LT@nocaptiontrue}
+  \appto\endlongtable{%
+    \ifLT@nocaption
+      \addtocounter{table}{\m@ne}%
+    \fi}
+  \preto\LT@caption{%
+    \noalign{\global\LT@nocaptionfalse}}
+  \makeatother
+
+  % codeblocks inside multicols
+  \newenvironment{lengthProtection}{%
+    \setlength{\floatsep}{0pt}
+    \setlength{\textfloatsep}{0pt}
+    \setlength{\intextsep}{0pt}
+    \setlength{\dbltextfloatsep}{0pt}
+    \setlength{\dblfloatsep}{0pt}
+    \setlength{\abovecaptionskip}{0pt}
+    \setlength{\belowcaptionskip}{0pt}
+  }{}
+  \newcommand\pppcaptionof[1]{
+    \vspace{12pt}
+    \begin{lengthProtection}
+      \captionof{program}{#1}
+    \end{lengthProtection}
+    \vspace{-12pt}
+  }
+  \newenvironment{unShaded}$if(page-columns)${%
+    \provideenvironment{Shaded}{}{}
+    \renewenvironment{Shaded}{}{}
+    \vspace{6pt}
+  }{\vspace{6pt}}$else${}{}$endif$
+
 % ----------- T I T L E   P A G E   A N D   P D F   M E T A D A T A -----------
-  \usepackage{bookmark}
   \hypersetup{
     pdfcreator={ppp},
     pdfauthor={$for(author)$$author$$sep$, $endfor$},
@@ -221,9 +260,11 @@
     pdfkeywords={$for(keywords)$$keywords$$sep$, $endfor$}
   }
 
-  \KOMAoptions{abstract=true}
-
-  \titlehead{$titlehead$}
+  \titlehead{
+    \makebox[0pt][l]{$title-head-left$}%
+    \makebox[\textwidth][l]{\hfill $title-head-centre$\hfill}%
+    \makebox[0pt][r]{$title-head-right$}%
+  }
   \subject{$subject$}
   \title{$title$}
   \subtitle{$subtitle$}
@@ -232,115 +273,131 @@
   \publishers{$publisher$}
   \dedication{$dedication$}
 
-
-  \newcommand\ppptitle{
-    \KOMAoptions{titlepage=firstiscover}% titlepage=true}
-
+  \newcommand\pppmaketitle{
+    \KOMAoptions{titlepage=$if(report)$true$else$false$endif$}
     \pdfbookmark[-1]{$title$}{$title$}
     \maketitle
-
-    $if(abstract)$
-    \pdfbookmark[$rootlevel$]{\abstractname}{\abstractname}
-    \begin{abstract}
-      $abstract$
-
-      $if(keywords)$
-      \textbf{\keywordsname:} \textnormal{$for(keywords)$$keywords$$sep$, $endfor$}
-      $endif$
-    \end{abstract}
+    $if(report)$$else$
+    \vspace{-3em}
     $endif$
   }
 
-  \newcommand\ppptitlemini{
-    \KOMAoptions{titlepage=false}
-
-    \pdfbookmark[-1]{$title$}{$title$}
-    $if(page-twocolumn)$
-    \makeatletter
-    \twocolumn[
-      \begin{@twocolumnfalse}
+  \KOMAoptions{abstract=true}
+  \newcommand\pppabstract[2][]{
+    \pdfbookmark[$rootlevel$]{\abstractname}{\abstractname}
+    $if(report)$$else$
+    $if(date)$
+    \vspace{1em}
+    $else$
+    $if(publisher)$
+    \vspace{1em}
     $endif$
-        \vspace{-3em}
-        \maketitle
-        \vspace{-1.5em}
-        $if(abstract)$
-        \vspace{-1.5em}
-        \begin{abstract}
-          \KOMAoptions{parskip=half}
-          \vspace{-1.5em}
-          \noindent
-          $abstract$
-
-          $if(keywords)$
-          \textbf{\keywordsname:} \textnormal{$for(keywords)$$keywords$$sep$, $endfor$}
-          $endif$
-        \end{abstract}
-        $endif$
-
-    $if(page-twocolumn)$
-      \end{@twocolumnfalse}
-    ]
-    \makeatother
     $endif$
+    \vspace{-3em}
+    $endif$
+    \begin{abstract}
+      $if(report)$
+      $else$
+      \KOMAoptions{parskip=half}
+      \noindent
+      \vspace{-4em}
+      $endif$
+
+      #2
+
+      \ifthenelse{\equal{#1}{}}{}{\textbf{\keywordsname:} \textnormal{#1}}
+    \end{abstract}
   }
 
 % ---------------- T A B L E   O F   C O N T E N T   E T C . . ----------------
-  % pre-toc
-  \setcounter{secnumdepth}{-1}
-  \addtocontents{toc}{\protect\setcounter{tocdepth}{-1}}
-
   % inline toc depth function
   \newcommand\tocdepth[1]{
     \FPeval{\result}{clip(#1 - 1)}
     \addtocontents{toc}{\protect\setcounter{tocdepth}{\result}}
   }
 
-  $if(journal)$
-    % make toc in one-column mode
-  $endif$
-
   \makeatletter
-  \newcommand\toc{
-    \resetsecnumdepth
-    \addtocontents{toc}{\protect\setcounter{tocdepth}{$if(toc-depth)$$toc-depth$$else$3$endif$}}
+  \newcommand\ppptableofcontents{
+    $if(report)$
+    \end{pppmulticol}
+    $endif$
+    \pppclear
+    \phantomsection
+
+    \FPeval{\result}{clip($rootlevel$ - 1)}
+    \ifnum \value{tocdepth} > \result
+      \addcontentsline{toc}{\ifnum $rootlevel$ = 0 chapter\fi\ifnum $rootlevel$ = 1 section\fi}{\contentsname}
+    \else
+      \bookmark[dest=\@currentHref,level=$rootlevel$]{\contentsname}
+    \fi
+
     \tableofcontents
-    \bookmark[dest=\@currentHref,level=$rootlevel$]{\contentsname}
+
+    \pppclear
+    $if(report)$
+    \begin{pppmulticol}
+    $endif$
+
+    % default toc level for entries after the toc
+    % \tocdepth{3}
   }
-  \newcommand\lof{
-    \listoffigures
-    \bookmark[dest=\@currentHref,level=$rootlevel$]{\listfigurename}
-  }
-  \newcommand\lot{
-    \listoftables
-    \bookmark[dest=\@currentHref,level=$rootlevel$]{\listtablename}
+  \newcommand\ppplistof[1]{
+    $if(report)$
+    \end{pppmulticol}
+    $endif$
+    \pppclear
+    \phantomsection
+
+    \FPeval{\result}{clip($rootlevel$ - 1)}
+    \ifnum \value{tocdepth} > \result
+      \addcontentsline{toc}{\ifnum $rootlevel$ = 0 chapter\fi\ifnum $rootlevel$ = 1 section\fi}{\csname list#1name\endcsname}
+    \else
+      \bookmark[dest=\@currentHref,level=$rootlevel$]{\csname list#1name\endcsname}
+    \fi
+
+    \listof{#1}{\csname list#1name\endcsname}
+
+    \pppclear
+    $if(report)$
+    \begin{pppmulticol}
+    $endif$
   }
   \makeatother
 
 % ---------------------------- A P P E N D I C E S ----------------------------
+  $if(report)$
   \KOMAoptions{appendixprefix=true}
-  \usepackage[titletoc,title]{appendix}
-  \renewcommand\appendices{
-    \bookmarksetupnext{level=-1}
-    \cleardoublepage
-    \appendix
-    $if(appendix-page)$
-      \appendixpage
-    $endif$
-    \addappheadtotoc
-    \addtocontents{toc}{\protect\setcounter{tocdepth}{$if(toc-apxdepth)$$toc-apxdepth$$else$2$endif$}}
+  $endif$
+
+% --------------------------------- N O T E S ---------------------------------
+  % links as notes
+  \let\oldhref=\href
+  $if(links-as-notes)$
+  \renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+  $endif$
+
+  \usepackage{fnpct}
+  \setfnpct{
+    dont-mess-around=true,
+    multiple=true
+  }
+
+  \usepackage{endnotes}
+  \newcommand\pppnotes{
+
+    \begingroup
+    \def\enotesize{\normalsize}
+    \addtoendnotes{\unexpanded{\enotedivision{}{}}}
+    \theendnotes
+    \endgroup
+
+    %\setcounter{endnote}{0}% messes up the hyper-refs, ok for print though
   }
 
 % -------------------------- B I B L I O G R A P H Y --------------------------
-  \renewcommand\bibliography[1]{
-    $if(bib-heading)$
-    \bookmarksetup{startatroot}
-
-    \chapter*{\bibname}
-    \addcontentsline{toc}{chapter}{\bibname}
-    $endif$
+  \newcommand\pppbibliography[1]{
 
     % hack for bib listings to indent
-    % no longer applicable as bib listings are put inside a bullet list
     %\setlength{\parindent}{-0.2in}
     %\setlength{\leftskip}{0.2in}
     %\setlength{\parskip}{8pt}\noindent
@@ -352,275 +409,29 @@
     #1
   }
 
-% ----------------------------- C I T A T I O N S -----------------------------
-  \newcommand\citations[1]{
-    $if(cites-heading)$
-    \bookmarksetup{startatroot}
-
-    \chapter*{\citesname}
-    \addcontentsline{toc}{chapter}{\citesname}
-    $endif$
-
-    #1
-  }
-
-% --------------------------------- N O T E S ---------------------------------
-  % NOTE: if links-as-notes is on do not try to put a link in an endnote!
-  \usepackage{endnotes}
-
-  $if(notes)$
-
-    \newcommand\notes[1]{
-      $if(notes-heading)$
-      \bookmarksetup{startatroot}
-
-      \chapter*{\notesname}
-      \addcontentsline{toc}{chapter}{\notesname}
-      $endif$
-
-      #1
-    }
-
-  $else$
-
-    % fancyvrb breaks footnoterefs
-    %\usepackage{fancyvrb}
-    %\VerbatimFootnotes
-
-    % -- footnote style
-    \deffootnotemark{%
-      \textsuperscript{{[}\thefootnotemark{]}}%
-      \label{footnotemark-\thefootnotemark}%
-    }
-    \deffootnote{2em}{1em}{%
-      \hyperref[footnotemark-\thefootnotemark]{
-        \thefootnotemark. %
-      }%
-      \label{footnote-\thefootnotemark}%
-    }
-
-
-    % -- hyperendnotes --
-    % taken from hyperendnote.sty by Ulrich Dirr
-      \makeatletter%
-      \newif\ifenotelinks%
-      \newcounter{Hendnote}%
-      \let\savedhref\href%
-      \let\savedurl\url%
-      \def\endnotemark{%
-        \@ifnextchar[\@xendnotemark{%
-          \stepcounter{endnote}%
-          \protected@xdef\@theenmark{\theendnote}%
-          \protected@xdef\@theenvalue{\number\c@endnote}%
-          \@endnotemark%
-        }%
-      }%
-      \def\@xendnotemark[#1]{%
-        \begingroup\c@endnote#1\relax%
-        \unrestored@protected@xdef\@theenmark{\theendnote}%
-        \unrestored@protected@xdef\@theenvalue{\number\c@endnote}%
-        \endgroup%
-        \@endnotemark%
-      }%
-      \def\endnotetext{%
-        \@ifnextchar[\@xendnotenext{%
-          \protected@xdef\@theenmark{\theendnote}%
-          \protected@xdef\@theenvalue{\number\c@endnote}%
-          \@endnotetext%
-        }%
-      }%
-      \def\@xendnotenext[#1]{%
-        \begingroup%
-        \c@endnote=#1\relax%
-        \unrestored@protected@xdef\@theenmark{\theendnote}%
-        \unrestored@protected@xdef\@theenvalue{\number\c@endnote}%
-        \endgroup%
-        \@endnotetext%
-      }%
-      \def\endnote{%
-        \@ifnextchar[\@xendnote{%
-          \stepcounter{endnote}%
-          \protected@xdef\@theenmark{\theendnote}%
-          \protected@xdef\@theenvalue{\number\c@endnote}%
-          \@endnotemark\@endnotetext%
-        }%
-      }%
-      \def\@xendnote[#1]{%
-        \begingroup%
-        \c@endnote=#1\relax%
-        \unrestored@protected@xdef\@theenmark{\theendnote}%
-        \unrestored@protected@xdef\@theenvalue{\number\c@endnote}%
-        \show\@theenvalue%
-        \endgroup%
-        \@endnotemark\@endnotetext%
-      }%
-      \def\@endnotemark{%
-        \leavevmode%
-        \ifhmode%
-          \edef\@x@sf{\the\spacefactor}\nobreak%
-        \fi%
-          \ifenotelinks%
-          \expandafter\@firstofone%
-        \else%
-          \expandafter\@gobble%
-        \fi%
-        {%
-          \Hy@raisedlink{%
-            \hyper@@anchor{Hendnotepage.\@theenvalue}{\empty}%
-          }%
-        }%
-        \hyper@linkstart{link}{Hendnote.\@theenvalue}%
-        \textsuperscript{{[}\makeenmark{]}}% <- reference type mark
-        \hyper@linkend%
-        \ifhmode%
-          \spacefactor\@x@sf%
-        \fi%
-        \relax%
-      }%
-      \long\def\@endnotetext#1{%
-        \if@enotesopen%
-        \else%
-          \@openenotes%
-        \fi%
-        \immediate\write\@enotes{%
-          \@doanenote{\@theenmark}{\@theenvalue}%
-        }%
-        \begingroup%
-        \def\next{#1}%
-        \newlinechar='40%
-        \immediate\write\@enotes{\meaning\next}%
-        \endgroup%
-        \immediate\write\@enotes{%
-          \@endanenote%
-        }%
-      }%
-      \def\theendnotes{%
-        \immediate\closeout\@enotes%
-        \global\@enotesopenfalse%
-        \begingroup%
-        \makeatletter%
-        \edef\@tempa{`\string>}%
-        \ifnum\catcode\@tempa=12%
-          \let\@ResetGT\relax%
-        \else%
-          \edef\@ResetGT{\noexpand\catcode\@tempa=\the\catcode\@tempa}%
-          \@makeother\>%
-        \fi%
-        \def\@doanenote##1##2##3>{%
-          \def\@theenmark{##1}%
-          \def\@theenvalue{##2}%
-          \par%
-          \begingroup%
-          \def\href{\expandafter\savedhref}%
-          \def\url{\expandafter\savedurl}%
-          \@ResetGT%
-          \edef\@currentlabel{\csname p@endnote\endcsname\@theenmark}%
-          \enoteformat%
-        }%
-        \def\@endanenote{%
-          \par\endgroup%
-        }%
-        \enoteheading%
-        \enotesize%
-        \input{\jobname.ent}%
-        \endgroup%
-      }%
-      \def\enoteformat{%
-        \rightskip\z@%
-        \leftskip\z@%
-        \parindent=0cm%
-        \leftskip=1cm%
-        \leavevmode\llap{%
-          \setcounter{Hendnote}{\@theenvalue}%
-          \addtocounter{Hendnote}{-1}%
-          \refstepcounter{Hendnote}%
-          \ifenotelinks%
-          \expandafter\@secondoftwo%
-          \else%
-            \expandafter\@firstoftwo%
-          \fi%
-          {\@firstofone}%
-          {\hyperlink{Hendnotepage.\@theenvalue}}%
-          {\makeenmark.}% <- note type mark
-          \hspace{0.5em}%
-        }%
-      }%
-      \makeatother%
-      \enotelinkstrue%
-    % -- end hyperendnotes --
-
-
-    \makeatletter
-    \renewcommand\makeenmark{\theenmark}
-    \let\latexchapter\chapter
-    \renewcommand\enoteheading{
-      \setcounter{secnumdepth}{-2}
-      $if(notes-heading)$
-      \latexchapter*{\notesname}
-      \addcontentsline{toc}{chapter}{\notesname}
-      \mbox{}\par\vskip-\baselineskip
-      $endif$
-      \let\@afterindentfalse\@afterindenttrue
-    }
-    \def\enotedivision#1#2{\@ifnextchar\enotedivision{}{#1{#2}}}
-    \makeatother
-
-    $if(grouped-notes)$
-    \usepackage{xparse}
-    \RenewDocumentCommand{\chapter}{som}{%
-      \IfBooleanTF{#1}{%
-        \latexchapter*{#3}%
-        \setcounter{endnote}{0}%
-        \addtoendnotes{%
-          \noexpand\enotedivision{\noexpand\subsection}{\unexpanded{#3}}%
-        }%
-      }{%
-        \IfNoValueTF{#2}{\latexchapter{#3}}{\latexchapter[#2]{#3}}%
-        \addtoendnotes{%
-          \noexpand\enotedivision{\noexpand\subsection*}%
-          {\unexpanded{#3}}% <- chapter mark
-        }%
-      }%
-    }%
-    $endif$
-
-    \newcommand\notes{
-      \bookmarksetup{startatroot}
-
-      \begingroup
-      \def\enotesize{\normalsize}
-      \addtoendnotes{\unexpanded{\enotedivision{}{}}}
-      \theendnotes
-      \endgroup
-
-      %\setcounter{endnote}{0}% messes up the hyper-refs, ok for print though
-      \resetsecnumdepth
-    }
-
-    $if(notes-chapter)$
-      \let\footnote=\endnote
-    $endif$
-
-  $endif$
+% ------------------------------ F I N A L I Z E ------------------------------
+  % recalculate page-div after fonts, line lengths, etc. are set
+  \KOMAoptions{DIV=current}\recalctypearea
 
 % ------------------------------ D O C U M E N T ------------------------------
 \begin{document}
 
-$if(leading-blank-page)$
-  \thispagestyle{empty}
-  \mbox{}
-  \clearpage
-  \setcounter{page}{1}
+$if(title)$
+\pppmaketitle
 $endif$
 
-$if(title)$
-  $if(article)$
-    \ppptitlemini
-  $else$
-    \ppptitle
-  $endif$
+$if(abstract)$
+\pppabstract[$if(keywords)$$for(keywords)$$keywords$$sep$, $endfor$$endif$]{$abstract$}
 $endif$
+
+\begin{pppmulticol}
+
+\tocdepth{0}
 
 $body$
+
+\tocdepth{10}
+
+\end{pppmulticol}
 
 \end{document}
