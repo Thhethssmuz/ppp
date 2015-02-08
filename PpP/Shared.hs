@@ -2,6 +2,7 @@ module PpP.Shared where
 
 import Text.Pandoc.Shared (splitBy)
 import Data.Char (isSpace)
+import Data.List
 
 
 data Unprocessed = Markdown String
@@ -38,3 +39,10 @@ metaList name list = metaVar name . concatMap ("\n- " ++) . parseList $ list
 
 metaBlock :: String -> String -> String
 metaBlock name block = "\n\n---\n" ++ name ++ ": |\n  " ++ block ++ "\n---\n\n"
+
+
+raw :: String -> String
+raw r = "\n\n<div class=\"ppp-raw\" raw=\"" ++ r ++ "\"></div>\n\n"
+
+func :: String -> String -> String
+func f x = raw $ "\\" ++ f ++ "{" ++ x ++ "}"
