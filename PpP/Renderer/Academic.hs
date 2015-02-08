@@ -17,7 +17,8 @@ import Control.Monad
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.State
 import Data.Char (toLower)
-import Data.Maybe (isJust)
+import Data.Maybe
+import Data.List (intersperse)
 
 import Paths_ppp
 import System.FilePath
@@ -30,8 +31,8 @@ config (Markdown s)  = add "" s
 config (Macro k v)   = case k of
 
   "language"        -> let lang = map toLower v
-                           loc  = M.lookup lang languages in
-                       case loc of
+                           loc  = M.lookup lang languages
+                       in case loc of
                          Nothing -> do
                                     add "err" . pppErr  $ "unsupported language " ++ lang
                                     addOnce k ""
@@ -100,10 +101,18 @@ config (Macro k v)   = case k of
   "keywords"        -> addOnce k $ metaList k v
   "abstract"        -> addOnce k $ metaBlock k v
 
-  "numbersections"  -> add k $ inlineFunc' k v
   "tocdepth"        -> add k $ inlineFunc' k v
+  "numdepth"        -> do
+                       m <- counter "mainmatter"
+                       if m > 0
+                       then add k $ inlineFunc' k v
+                       else setCounter "atmainmatter-numdepth"
+                          . maybe (-2) fst . listToMaybe $ reads v
 
-  "tableofcontents" -> addOnce k $ inlineFunc  ("ppp" ++ k) ""
+  "tableofcontents" -> do
+                       addOnce k $ inlineFunc  ("ppp" ++ k) ""
+                       d <- counter "tocdepth"
+                       unless (d > 0) . add "tocdepth" . raw $ "\\tocdepth{3}"
   "listoffigures"   -> addOnce k $ inlineFunc' ("ppp" ++ "listof") "figure"
   "listoftables"    -> addOnce k $ inlineFunc' ("ppp" ++ "listof") "table"
   "listofprograms"  -> addOnce k $ inlineFunc' ("ppp" ++ "listof") "program"
@@ -126,9 +135,54 @@ config (Macro k v)   = case k of
 
   "bib-flush-hack"  -> add k $ metaVar k "true"
 
+  "mainmatter"      -> do
+                       c <- counter "numdepth"
+                       d <- counter "atmainmatter-numdepth"
+                       addOnce k . raw $ "\\numdepth{3}"
+                       when (c > 0) . add "numdepth" . func "numdepth" $ show d
+
+  "backmatter"      -> do
+                       a <- counter "appendix"
+                       addOnce k . raw . concat . intersperse "\n" $
+                         (if a > 0 then [
+                         "\\end{pppmulticol}",
+                         "\\makeatletter",
+                         "\\renewcommand{\\toclevel@part}{-1}",
+                         "\\renewcommand{\\toclevel@chapter}{0}",
+                         "\\renewcommand{\\toclevel@section}{1}",
+                         "\\renewcommand{\\toclevel@subsection}{2}",
+                         "\\renewcommand{\\toclevel@subsubsection}{3}",
+                         "\\renewcommand{\\toclevel@paragraph}{4}",
+                         "\\renewcommand{\\toclevel@subparagraph}{5}",
+                         "\\makeatother",
+                         "\\begin{pppmulticol}" ] else []) ++ [
+                         "\\numdepth{-1}",
+                         "\\renewcommand{\\numdepth}{}" ]
+
   _                 -> add "err" . pppErr $ "unknown macro " ++ k
 
 config (Include k v) = case k of
+  "appendix"        -> do
+                       addOnce' k $ raw . concat . intersperse "\n" $ [
+                         "\\end{pppmulticol}",
+                         "\\pppclear",
+                         "\\part*{\\appendixpagename}",
+                         "\\appendix",
+                         "\\addcontentsline{toc}{chapter}{\\appendixpagename}",
+                         "",
+                         "\\makeatletter",
+                         "\\renewcommand{\\toclevel@part}{0}",
+                         "\\renewcommand{\\toclevel@chapter}{1}",
+                         "\\renewcommand{\\toclevel@section}{2}",
+                         "\\renewcommand{\\toclevel@subsection}{3}",
+                         "\\renewcommand{\\toclevel@subsubsection}{4}",
+                         "\\renewcommand{\\toclevel@paragraph}{5}",
+                         "\\renewcommand{\\toclevel@subparagraph}{6}",
+                         "\\makeatother",
+                         "\\begin{pppmulticol}"
+                         ]
+                       forM_ v config
+
   _                 -> add "err" . pppErr $ "unknown macro " ++ k
 
 -------------------------------------------------------------------------------
