@@ -69,7 +69,7 @@ config (Macro k v)   = case k of
                          case x of
                            "twoside"   -> addOnce x $ metaVar "page-twoside" "true"
                            _           -> add "err" . pppErr $ "unknown argument '" ++ x ++ "' applied to page macro"
-  "pagecols"        -> addOnce k $ metaVar "page-columns" v
+  "pagecols"        -> unless (v == "1") . addOnce k $ metaVar "page-columns" v
   "pagesize"        -> addOnce k $ metaVar "page-size" v
   "pagediv"         -> addOnce k $ metaVar "page-div" v
   "pagebcor"        -> addOnce k $ metaVar "page-bcor" v
@@ -138,6 +138,7 @@ config (Macro k v)   = case k of
                                    func "end" "pppbibliography"
 
   "bib-flush-hack"  -> add k $ metaVar k "true"
+  "linksasnotes"    -> addOnce k $ metaVar "links-as-notes" "true"
 
   "mainmatter"      -> do
                        c <- counter "numdepth"
