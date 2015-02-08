@@ -131,7 +131,11 @@ config (Macro k v)   = case k of
                                       pppErr ("unknown argument " ++ v' ++
                                               " applied to macro notes")
 
-  "bibliography"    -> addOnce k $ metaList k v ++ inlineFunc ("ppp" ++ k) ""
+  "bibliography"    -> do
+                       addOnce k $ metaList k v ++
+                                   func "begin" "pppbibliography" ++
+                                   "\n\n<div insert=\"bibliography\"></div>\n\n" ++
+                                   func "end" "pppbibliography"
 
   "bib-flush-hack"  -> add k $ metaVar k "true"
 

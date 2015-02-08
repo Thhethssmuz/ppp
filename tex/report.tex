@@ -395,19 +395,11 @@
   }
 
 % -------------------------- B I B L I O G R A P H Y --------------------------
-  \newcommand\pppbibliography[1]{
-
-    % hack for bib listings to indent
-    %\setlength{\parindent}{-0.2in}
-    %\setlength{\leftskip}{0.2in}
-    %\setlength{\parskip}{8pt}\noindent
-
+  \newenvironment{pppbibliography}{
     % show urls in bibliography as links and not as a footnote
     % only applicable if links-as-notes is on
     \let\href=\oldhref
-
-    #1
-  }
+  }{}
 
 % ------------------------------ F I N A L I Z E ------------------------------
   % recalculate page-div after fonts, line lengths, etc. are set

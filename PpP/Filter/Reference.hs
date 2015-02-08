@@ -26,8 +26,8 @@ import System.Directory (doesFileExist)
 
 
 insertDiv :: String -> Block -> Block -> Block
-insertDiv s bs x@(Div (did, cs, [("name", s')]) _) = 
-  if s == s' then Div (did, cs, [("name", s)]) [bs]
+insertDiv s bs x@(Div (did, cs, [("insert", s')]) _) =
+  if s == s' then Div (did, cs, [("insert", s)]) [bs]
              else x
 insertDiv _ _ x = x
 
