@@ -28,6 +28,10 @@ increment k = do
   c <- counter k
   modify (\doc -> doc{keycount = M.insert k (c+1) $ keycount doc})
 
+setCounter :: String -> Int -> StateT PpP IO ()
+setCounter k v =
+  modify (\doc -> doc{keycount = M.insert k v $ keycount doc})
+
 add :: String -> String -> StateT PpP IO ()
 add k v = do
   increment k
