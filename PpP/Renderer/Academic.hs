@@ -161,7 +161,7 @@ config (Macro k v)   = case k of
                          "\\makeatother",
                          "\\begin{pppmulticol}" ] else []) ++ [
                          "\\numdepth{-1}",
-                         "\\renewcommand{\\numdepth}{}" ]
+                         "\\renewcommand{\\numdepth}[1]{}" ]
 
   _                 -> add "err" . pppErr $ "unknown macro " ++ k
 
