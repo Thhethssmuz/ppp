@@ -46,7 +46,7 @@ when' _    _ x = x
 wrapSubfloatI :: String -> Bool -> Inline -> Inline
 wrapSubfloatI wh s i = Span ([],[],[]) $
   let s'  = if s then "\\textwidth" else "\\linewidth" 
-  in [ tex $ "\n\\begin{minipage}[c]{"++wh++s'++"}\n",
+  in [ tex $ "\n\\begin{minipage}[t]{"++wh++s'++"}\n",
        tex $ "\\centering{\n",
        i,
        tex $ "}\n",
@@ -116,7 +116,7 @@ mkFloatI m (Span (i,cs,as) is) = Span ([],[],[]) $
       s   = "span" `elem` cs
       w   = not s && "wrap" `elem` cs
 
-      ft  = if f && m > 1 then "tbh" else "H"
+      ft  = if f && (m > 1 || s) then "tbh" else "H"
       st  = if s && f then "*" else ""
       wt  = wrapTypeCheck f . lookup "wrap" $ as
 
@@ -156,7 +156,7 @@ mkFloatB m (Div (i, cs, as) bs) = Div ([],[],[]) $
       s   = "span" `elem` cs
       w   = not s && "wrap" `elem` cs
 
-      ft  = if f && m > 1 then "tbh" else "H"
+      ft  = if f && (m > 1 || s) then "tbh" else "H"
       st  = if s && f then "*" else ""
       wt  = wrapTypeCheck f . lookup "wrap" $ as
 
@@ -280,14 +280,14 @@ joinAttrParts parts = foldl f ([],[],[]) parts
 parseIdPart :: Parser AttrPart
 parseIdPart = do
   char '#'
-  i <- many1 alphaNum
+  i <- many1 (alphaNum <|> oneOf "-_")
   spaces
   return $ IdPart i
 
 parseClassPart :: Parser AttrPart
 parseClassPart = do
   char '.'
-  i <- many1 alphaNum
+  i <- many1 (alphaNum <|> oneOf "-_")
   spaces
   return $ ClassPart i
 
@@ -456,6 +456,6 @@ float pandoc =
   let c = getPageColumns pandoc
   in      topDown (floatI c)
         . topDown (floatB c)
-        . walk transformB 
-        . walk transformI 
+        . walk transformI
+        . walk transformB
         $ pandoc
