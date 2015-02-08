@@ -19,7 +19,7 @@ ref :: String -> Inline
 ref r = tex $ "\\ref{" ++ r ++ "}"
 
 replaceInline :: String -> Inline -> Inline
-replaceInline r (Str s) = wrap . intersperse (ref r) . map Str . splitOn "??" $ s
+replaceInline r (Str s) = wrap . intersperse (ref r) . map Str . splitOn "#" $ s
 replaceInline r (Emph is)        = Emph $ map (replaceInline r) is
 replaceInline r (Strong is)      = Strong $ map (replaceInline r) is
 replaceInline r (Strikeout is)   = Strikeout $ map (replaceInline r) is
