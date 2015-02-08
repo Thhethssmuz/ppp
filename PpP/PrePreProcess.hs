@@ -3,6 +3,7 @@ module PpP.PrePreProcess where
 import PpP.Shared
 
 import Text.ParserCombinators.Parsec
+import Control.Monad
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.State
 
@@ -60,8 +61,10 @@ groupUnprocessed =
 
 parseUnprocessed :: String -> StateT [Unprocessed] IO ()
 parseUnprocessed s = case parse unprocessed "" s of
-  Left err -> addUnprocessed . Markdown . pppErr $ 
-              "unable to parse macro " ++ trim s ++ "\n" ++ prettify err ++ "\n"
+  Left err -> do
+              addUnprocessed . Markdown . pppErr $
+                "unable to parse macro " ++ trim s ++ "\n" ++ prettify err ++ "\n"
+              addUnprocessed $ Markdown "\n\n"
 
   Right dp -> addUnprocessed dp
 
@@ -73,12 +76,13 @@ addUnprocessed (Macro k v) = case k of
 
   "article"    -> do
                   inc <- lift . mapM prePreProcess . parseList $ v
-                  modify . (++) . map (Include k) $ inc
+                  modify . flip (++) . map (Include k) $ inc
   "articles"   -> addUnprocessed $ Macro "article" v
 
   "appendix"   -> do
                   inc <- lift . mapM prePreProcess . parseList $ v
-                  modify . (++) . map (Include k) $ inc
+                  when (null inc) $ modify (++ [Include k []])
+                  modify . flip (++) . map (Include k) $ inc
   "appendices" -> addUnprocessed $ Macro "appendix" v
 
   _            -> modify (++ [Macro k v])
