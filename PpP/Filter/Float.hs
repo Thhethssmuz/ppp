@@ -168,7 +168,8 @@ mkFloatB m (Div (i, cs, as) bs) = Div ([],[],[]) $
       lb  = mkLabel t i
 
       cps = map (mkCaptionB False (t=="misc")) . filter isCaptionB $ bs
-      sub = intersperse (Plain [tex "\\quad"]) . concatMap (wrapSubfloatB wh s . subfloatB t) $ bs'
+      sub = concat . intersperse [Plain [tex "\\quad"]]
+          . map (wrapSubfloatB wh s . subfloatB t) $ bs'
 
       em  = if s && not f then [ tex $ "\\end{pppmulticol}" ] else [] 
       bm  = if s && not f then [ tex $ "\\begin{pppmulticol}"] else []
@@ -407,7 +408,7 @@ wrapTableCell r w a x =
 mkTableRow :: String -> [String] -> [String] -> [TableCell] -> [Block]
 mkTableRow ra ws as xs = concatMap concatPlain
                        . flip (++) ([[Plain [tex "\\tabularnewline\n"]]])
-                       . intersperse ([Plain [tex " $\n"]])
+                       . intersperse ([Plain [tex " \\and\n"]])
                        . zipWith3 (wrapTableCell ra) ws as $ xs
 
 mkTable :: [Alignment] -> [Double] -> [TableCell] -> [[TableCell]] -> [Block]
