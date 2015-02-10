@@ -13,7 +13,7 @@ import Text.ParserCombinators.Parsec
 
 import Numeric (showFFloat)
 import Data.Char (toUpper)
-import Data.List (genericLength)
+import Data.List (genericLength, intersperse)
 import Data.List.Split (splitOn)
 import Data.Maybe
 import Control.Monad
@@ -125,7 +125,7 @@ mkFloatI m (Span (i,cs,as) is) = Span ([],[],[]) $
       is' = filter (not . isCaptionI) . filter (/= Space) $ is
       nis = genericLength is'
 
-      wh  = showF . when' (not w) ((subtract 0.05) . (/nis)) 
+      wh  = showF . when' (not w) ((*0.95) . (/nis)) 
           . maybe 1 parsePercent . lookup "width" $ as
       lb  = mkLabel t i
 
@@ -163,12 +163,12 @@ mkFloatB m (Div (i, cs, as) bs) = Div ([],[],[]) $
       bs' = filter (not . isCaptionB) bs
       nbs = genericLength bs'
 
-      wh  = showF . when' (not w) ((subtract 0.05) . (/nbs))
+      wh  = showF . when' (not w) ((*0.95) . (/nbs))
           . maybe 1 parsePercent . lookup "width" $ as
       lb  = mkLabel t i
 
       cps = map (mkCaptionB False (t=="misc")) . filter isCaptionB $ bs
-      sub = concatMap (wrapSubfloatB wh s . subfloatB t) $ bs'
+      sub = intersperse (Plain [tex "\\quad"]) . concatMap (wrapSubfloatB wh s . subfloatB t) $ bs'
 
       em  = if s && not f then [ tex $ "\\end{pppmulticol}" ] else [] 
       bm  = if s && not f then [ tex $ "\\begin{pppmulticol}"] else []
@@ -391,6 +391,42 @@ transformI i = i
 
 -------------------------------------------------------------------------------
 
+alignment :: Alignment -> (String, String)
+alignment a = case a of
+  AlignLeft    -> ("l", "\\raggedright")
+  AlignRight   -> ("r", "\\raggedleft")
+  AlignCenter  -> ("c", "\\centering")
+  AlignDefault -> ("l", "\\raggedright")
+
+wrapTableCell :: String -> String -> String -> TableCell -> [Block]
+wrapTableCell r w a x =
+  [Plain [ tex $ "\\begin{minipage}["++r++"]{"++w++"\\columnwidth}"++a++"\\strut\n" ]] ++
+  x ++
+  [Plain [ tex $ "\n\\strut\\end{minipage}" ]]
+
+mkTableRow :: String -> [String] -> [String] -> [TableCell] -> [Block]
+mkTableRow ra ws as xs = concatMap concatPlain
+                       . flip (++) ([[Plain [tex "\\tabularnewline\n"]]])
+                       . intersperse ([Plain [tex " $\n"]])
+                       . zipWith3 (wrapTableCell ra) ws as $ xs
+
+mkTable :: [Alignment] -> [Double] -> [TableCell] -> [[TableCell]] -> [Block]
+mkTable aligns widths heads rows =
+  let (ls,as) = unzip . map alignment $ aligns
+      ws      = map (showF . realToFrac) widths
+
+      b  = [ Plain [ tex $ "\\begin{tabular}{@{}" ++ concat ls ++ "@{}}\n" ] ]
+      tr = [ Plain [ tex $ "\\toprule\n" ] ]
+      x  = mkTableRow "b" ws as heads
+      mr = [ Plain [ tex $ "\\midrule\n" ] ]
+      xm = if all null heads then [] else x ++ mr
+      xs = map (mkTableRow "t" ws as) $ rows
+      br = [ Plain [ tex $ "\\bottomrule\n" ] ]
+      e  = [ Plain [ tex $ "\\end{tabular}" ] ]
+  in  concatPlain (b ++ tr ++ xm ++ concat xs ++ br ++ e)
+
+-------------------------------------------------------------------------------
+
 transformB :: Block -> Block
 transformB (Para [Image is (url, title)]) =
   let (us, (i,cs,as)) = splitUrlAttr . unwords . splitOn "%20" $ url
@@ -405,22 +441,21 @@ transformB (Para [Image is (url, title)]) =
 
   in Para [Span (i',"auto":"figure":"box":cs,as) $ inner ++ wrapCaptionI cp]
 
-
 transformB (Table is alig space heads cols) =
   let (cp, (i,cs,as)) = splitCaptionAttr is
       cp' = if any ((==) $ stringify cp) ["", " "] then [] else [Plain [Span ([],["caption"],[]) cp]]
       lb  = mkLabel "table" i
       l   = "long" `elem` cs
       w   = fmap (realToFrac . parsePercent) . lookup "width" $ as
-      s   = maybe space (\w -> map ((*) . (/) (w-0.05) . sum $ space) $ space) w
-      f   = maybe space (\w -> map ((*) . (/) 1 . sum $ space) $ space) w
+      s   = maybe space (\w -> map ((*) . (/) (w*0.95) . sum $ space) $ space) w
+      f   = maybe space (\w -> map ((*) . (/) (0.95) . sum $ space) $ space) w
   in case l of
     True -> Div ([],[],[]) [
               Plain [ tex "\\end{pppmulticol}" ],
               Table (cp++lb) alig s heads cols,
               Plain [ tex "\\begin{pppmulticol}" ] ]
-    _    -> Div (i,"auto":"table":"box":"span":cs,as) $ [
-              Table [] alig f heads cols ] ++ cp'
+    _    -> Div (i,"auto":"table":"box":cs,as) $ (
+              mkTable alig f heads cols ) ++ cp'
 
 transformB cb@(CodeBlock attr code) =
   let (i,cs,as) = fixCBAttr attr
