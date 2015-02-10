@@ -118,21 +118,27 @@
   \AtBeginDocument{
     \defcaptionname{norsk,nynorsk}{\abstractname}{Abstrakt}
     \defcaptionname{norsk,nynorsk}{\appendixname}{Vedlegg}
-    \defcaptionname{english,brittesh,american}{\appendixpagename}{Appendices}
+    \defcaptionname{english,british,american}{\appendixpagename}{Appendices}
     \defcaptionname{norsk,nynorsk}{\appendixpagename}{Vedlegg}
     \defcaptionname{norsk,nynorsk}{\appendixtocname}{Vedlegg}
+    \defcaptionname{english,british,american}{\equationname}{Equation}
+    \defcaptionname{norsk}{\equationname}{Ligning}
+    \defcaptionname{nynorsk}{\equationname}{Likning}
     \defcaptionname{english,british,american}{\examplename}{Example}
     \defcaptionname{norsk,nynorsk}{\examplename}{Eksempel}
     \defcaptionname{english,british,american}{\keywordsname}{Keywords}
     \defcaptionname{norsk}{\keywordsname}{Nøkelord}
     \defcaptionname{nynorsk}{\keywordsname}{Nykelord}
+    \defcaptionname{english,british,american}{\listequationname}{List of Equations}
+    \defcaptionname{norsk}{\listequationname}{Ligninger}
+    \defcaptionname{nynorsk}{\listequationname}{Likningar}
     \defcaptionname{english,british,american}{\listexamplename}{List of Examples}
     \defcaptionname{norsk,nynorsk}{\listexamplename}{Eksempel}
     \defcaptionname{english,british,american}{\listexamplename}{List of Programs}
     \defcaptionname{norsk,nynorsk}{\listprogramename}{Program}
     \defcaptionname{norsk}{\notesname}{Noter}
     \defcaptionname{nynorsk}{\notesname}{Notar}
-    \defcaptionname{english,british,american,norks,nynorsk}{\programname}{Program}
+    \defcaptionname{english,british,american,norsk,nynorsk}{\programname}{Program}
   }
 
 % ---------------------------- P A R A G R A P H S ----------------------------
@@ -193,15 +199,17 @@
   \captionsetup[subfigure]{margin=0.5em}
   \captionsetup[subtable]{margin=0.5em}
 
-  \newfloat{program}{tbh}{prog}[$if(report)$chapter$else$section$endif$]
-  \floatname{program}{\programname}
-  \DeclareCaptionSubType{program}
-  \captionsetup[subprogram]{margin=0.5em}
+  \def\aoeuprogramname{lol}
 
-  \newfloat{example}{tbh}{ex}[$if(report)$chapter$else$section$endif$]
-  \floatname{example}{\examplename}
-  \DeclareCaptionSubType{example}
-  \captionsetup[subexample]{margin=0.5em}
+  \newcommand\pppnewfloat[1]{
+    \newfloat{#1}{tbh}{#1}[$if(report)$chapter$else$section$endif$]
+    \floatname{#1}{\csname#1name\endcsname}
+    \DeclareCaptionSubType{#1}
+    \captionsetup[sub#1]{margin=0.5em}
+  }
+  \pppnewfloat{equation}
+  \pppnewfloat{example}
+  \pppnewfloat{program}
 
   \newfloat{misc}{tbh}{misc}[$if(report)$chapter$else$section$endif$]
   \DeclareCaptionSubType*{misc}
