@@ -235,6 +235,7 @@ types = ["figure", "table", "formula", "program", "example", "misc"]
 prefix "figure"  = "fig:"
 prefix "table"   = "tab:"
 prefix "formula" = "form:"
+prefix "program" = "prog:"
 prefix "example" = "ex:"
 prefix "misc"    = ""
 prefix _         = ""
