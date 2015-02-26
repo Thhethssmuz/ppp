@@ -115,10 +115,12 @@ mkFloatI m (Span (i,cs,as) is) = Span ([],[],[]) $
       f   = "float" `elem` cs
       s   = "span" `elem` cs
       w   = not s && "wrap" `elem` cs
+      y   = isJust . lookup "style" $ as
 
       ft  = if f && (m > 1 || s) then "tbh" else "H"
       st  = if s && f then "*" else ""
       wt  = wrapTypeCheck f . lookup "wrap" $ as
+      yt  = maybe "plain" styleCheck . lookup "style" $ as
 
       --is' = filter isFloatI $ is
       --nis = genericLength is'
@@ -132,9 +134,8 @@ mkFloatI m (Span (i,cs,as) is) = Span ([],[],[]) $
       cps = unSpan . map (mkCaptionI False (t=="misc")) . filter isCaptionI $ is
       sub = map (wrapSubfloatI wh s . subfloatI t) $ is'
 
-      em  = if s && not f then [ tex $ "}\\end{pppmulticol}" ] else [] 
-      bm  = if s && not f then [ tex $ "\\begin{pppmulticol}{"] else []
-  in em ++
+  in [ tex $ "}\\end{pppmulticol}" | s && not f ] ++
+     [ tex $  "\\floatstyle{"++yt++"}\\restylefloat{"++t++"}" | y ] ++
      [ tex "\n",
        tex $ if w 
          then "\\begin{wrapfloat}{"++t++"}{"++wt++"}{"++wh++"\\linewidth}\n"
@@ -146,7 +147,8 @@ mkFloatI m (Span (i,cs,as) is) = Span ([],[],[]) $
      [ tex $ if w
          then "\n\\end{wrapfloat}\n"
          else "\n\\end{"++t++st++"}\n" ] ++
-     bm
+     [ tex $  "\\floatstyle{plain}\\restylefloat{"++t++"}" | y ] ++
+     [ tex $ "\\begin{pppmulticol}{" | s && not f ]
 
 mkFloatB :: Int -> Block -> Block
 mkFloatB m (Div (i, cs, as) bs) = Div ([],[],[]) $
@@ -155,10 +157,12 @@ mkFloatB m (Div (i, cs, as) bs) = Div ([],[],[]) $
       f   = "float" `elem` cs
       s   = "span" `elem` cs
       w   = not s && "wrap" `elem` cs
+      y   = isJust . lookup "style" $ as
 
       ft  = if f && (m > 1 || s) then "tbh" else "H"
       st  = if s && f then "*" else ""
       wt  = wrapTypeCheck f . lookup "wrap" $ as
+      yt  = maybe "plain" styleCheck . lookup "style" $ as
 
       bs' = filter (not . isCaptionB) bs
       nbs = genericLength bs'
@@ -171,10 +175,9 @@ mkFloatB m (Div (i, cs, as) bs) = Div ([],[],[]) $
       sub = concat . intersperse [Plain [tex "\\quad"]]
           . map (wrapSubfloatB wh s . subfloatB t) $ bs'
 
-      em  = if s && not f then [ tex $ "\\end{pppmulticol}" ] else [] 
-      bm  = if s && not f then [ tex $ "\\begin{pppmulticol}"] else []
   in concatPlain $ [ Plain $
-       em ++
+       [ tex $ "\\end{pppmulticol}" | s && not f ] ++
+       [ tex $  "\\floatstyle{"++yt++"}\\restylefloat{"++t++"}" | y ] ++
        [ tex $ if w 
            then "\\begin{wrapfloat}{"++t++"}{"++wt++"}{"++wh++"\\linewidth}"
            else "\\begin{"++t++st++"}["++ft++"]",
@@ -186,7 +189,8 @@ mkFloatB m (Div (i, cs, as) bs) = Div ([],[],[]) $
        [ tex $ if w
            then "\\end{wrapfloat}"
            else "\\end{"++t++st++"}" ] ++
-       bm
+       [ tex $  "\\floatstyle{plain}\\restylefloat{"++t++"}" | y ] ++
+       [ tex $ "\\begin{pppmulticol}" | s && not f ]
      ]
 
 -------------------------------------------------------------------------------
@@ -251,6 +255,10 @@ wrapTypeCheck float wrap =
       x <- wrap
       guard $ x `elem` ["outer", "inner", "left", "right"]
       return . take 1 $ x
+
+styleCheck :: String -> String
+styleCheck x =
+  if x `elem` ["plain", "plaintop", "boxed", "ruled"] then x else "plain"
 
 -------------------------------------------------------------------------------
 
