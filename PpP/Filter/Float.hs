@@ -43,21 +43,21 @@ when' _    _ x = x
 
 -------------------------------------------------------------------------------
 
-wrapSubfloatI :: String -> Bool -> Inline -> Inline
-wrapSubfloatI wh s i = Span ([],[],[]) $
+wrapSubfloatI :: String -> Bool -> [String] -> Inline -> Inline
+wrapSubfloatI wh s [x,y] i = Span ([],[],[]) $
   let s'  = if s then "\\textwidth" else "\\linewidth" 
-  in [ tex $ "\n\\begin{minipage}[t]{"++wh++s'++"}\n",
-       tex $ "\\centering{\n",
+  in [ tex $ "\n\\begin{minipage}["++x++"]{"++wh++s'++"}\n",
+       tex $ y++"{\n",
        i,
        tex $ "}\n",
        tex $ "\\end{minipage}\n" ]
 
-wrapSubfloatB :: String -> Bool -> Block -> [Block]
-wrapSubfloatB wh s b =
+wrapSubfloatB :: String -> Bool -> [String] -> Block -> [Block]
+wrapSubfloatB wh s [x,y] b =
   let s' = if s then "\\textwidth" else "\\linewidth"
   in [ Plain $
-       [ tex $ "\\begin{minipage}[t]{"++wh++s'++"}",
-         tex $ "\\centering" ],
+       [ tex $ "\\begin{minipage}["++x++"]{"++wh++s'++"}",
+         tex $ y ],
        b,
        Plain $ 
        [ tex $ "\\end{minipage}" ] ]
@@ -121,6 +121,7 @@ mkFloatI m (Span (i,cs,as) is) = Span ([],[],[]) $
       st  = if s && f then "*" else ""
       wt  = wrapTypeCheck f . lookup "wrap" $ as
       yt  = maybe "plain" styleCheck . lookup "style" $ as
+      al  = alignCheck . lookup "align" $ as
 
       --is' = filter isFloatI $ is
       --nis = genericLength is'
@@ -132,7 +133,7 @@ mkFloatI m (Span (i,cs,as) is) = Span ([],[],[]) $
       lb  = mkLabel t i
 
       cps = unSpan . map (mkCaptionI False (t=="misc")) . filter isCaptionI $ is
-      sub = map (wrapSubfloatI wh s . subfloatI t) $ is'
+      sub = map (wrapSubfloatI wh s al . subfloatI t) $ is'
 
   in [ tex $ "}\\end{pppmulticol}" | s && not f ] ++
      [ tex $  "\\floatstyle{"++yt++"}\\restylefloat{"++t++"}" | y ] ++
@@ -163,6 +164,7 @@ mkFloatB m (Div (i, cs, as) bs) = Div ([],[],[]) $
       st  = if s && f then "*" else ""
       wt  = wrapTypeCheck f . lookup "wrap" $ as
       yt  = maybe "plain" styleCheck . lookup "style" $ as
+      al  = alignCheck . lookup "align" $ as
 
       bs' = filter (not . isCaptionB) bs
       nbs = genericLength bs'
@@ -173,7 +175,7 @@ mkFloatB m (Div (i, cs, as) bs) = Div ([],[],[]) $
 
       cps = map (mkCaptionB False (t=="misc")) . filter isCaptionB $ bs
       sub = concat . intersperse [Plain [tex "\\quad"]]
-          . map (wrapSubfloatB wh s . subfloatB t) $ bs'
+          . map (wrapSubfloatB wh s al . subfloatB t) $ bs'
 
   in concatPlain $ [ Plain $
        [ tex $ "\\end{pppmulticol}" | s && not f ] ++
@@ -263,6 +265,20 @@ styleCheck x =
 tableStyleCheck :: String -> String
 tableStyleCheck x =
   if x `elem` ["plain", "ruled"] then x else "ruled"
+
+alignCheck :: Maybe String -> [String]
+alignCheck align =
+  let as    = maybe ["top", "centre"] words align
+      xs    = [ "top", "centre", "center", "bottom" ]
+      ys    = [ "left", "centre", "center", "justified", "right" ]
+      f "l" = "\\raggedright"
+      f "c" = "\\centering"
+      f "j" = ""
+      f "r" = "\\raggedleft"
+  in case as of
+    [x,y]  -> [ if x `elem` xs then take 1 x else "t",
+                f (if y `elem` ys then take 1 y else "c") ]
+    _      -> [ "t", "c" ]
 
 -------------------------------------------------------------------------------
 
