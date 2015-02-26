@@ -13,7 +13,7 @@ import Text.ParserCombinators.Parsec
 
 import Numeric (showFFloat)
 import Data.Char (toUpper)
-import Data.List (genericLength, intersperse)
+import Data.List
 import Data.List.Split (splitOn)
 import Data.Maybe
 import Control.Monad
@@ -260,6 +260,10 @@ styleCheck :: String -> String
 styleCheck x =
   if x `elem` ["plain", "plaintop", "boxed", "ruled"] then x else "plain"
 
+tableStyleCheck :: String -> String
+tableStyleCheck x =
+  if x `elem` ["plain", "ruled"] then x else "ruled"
+
 -------------------------------------------------------------------------------
 
 subfloatI :: String -> Inline -> Inline
@@ -420,19 +424,25 @@ mkTableRow ra ws as xs = concatMap concatPlain
                        . intersperse ([Plain [tex " \\and\n"]])
                        . zipWith3 (wrapTableCell ra) ws as $ xs
 
-mkTable :: [Alignment] -> [Double] -> [TableCell] -> [[TableCell]] -> [Block]
-mkTable aligns widths heads rows =
+mkTable :: [Alignment]
+        -> [Double]
+        -> [TableCell]
+        -> [[TableCell]]
+        -> String
+        -> [Block]
+mkTable aligns widths heads rows ts =
   let (ls,as) = unzip . map alignment $ aligns
+      ls'     = concat ls
       ws      = map (showF . realToFrac) widths
 
-      b  = [ Plain [ tex $ "\\begin{tabular}{@{}" ++ concat ls ++ "@{}}\n" ] ]
-      tr = [ Plain [ tex $ "\\toprule\n" ] ]
-      x  = mkTableRow "b" ws as heads
-      mr = [ Plain [ tex $ "\\midrule\n" ] ]
-      xm = if all null heads then [] else x ++ mr
-      xs = map (mkTableRow "t" ws as) $ rows
-      br = [ Plain [ tex $ "\\bottomrule\n" ] ]
-      e  = [ Plain [ tex $ "\\end{tabular}" ] ]
+      b   = [ Plain [ tex $ "\\begin{tabular}{@{}" ++ ls' ++ "@{}}\n" ] ]
+      tr  = [ Plain [ tex $ "\\toprule\n"    | ts == "ruled" ] ]
+      x   = mkTableRow "b" ws as heads
+      mr  = [ Plain [ tex $ "\\midrule\n"    | ts == "ruled" ] ]
+      xm  = if all null heads then [] else x ++ mr
+      xs  = map (mkTableRow "t" ws as) $ rows
+      br  = [ Plain [ tex $ "\\bottomrule\n" | ts == "ruled" ] ]
+      e   = [ Plain [ tex $ "\\end{tabular}" ] ]
   in  concatPlain (b ++ tr ++ xm ++ concat xs ++ br ++ e)
 
 -------------------------------------------------------------------------------
@@ -459,13 +469,14 @@ transformB (Table is alig space heads cols) =
       w   = fmap (realToFrac . parsePercent) . lookup "width" $ as
       s   = maybe space (\w -> map ((*) . (/) (w*0.95) . sum $ space) $ space) w
       f   = maybe space (\w -> map ((*) . (/) (0.95) . sum $ space) $ space) w
+      ts  = maybe "ruled" tableStyleCheck . lookup "tablestyle" $ as
   in case l of
     True -> Div ([],[],[]) [
               Plain [ tex "\\end{pppmulticol}" ],
               Table (cp++lb) alig s heads cols,
               Plain [ tex "\\begin{pppmulticol}" ] ]
     _    -> Div (i,"auto":"table":"box":cs,as) $ (
-              mkTable alig f heads cols ) ++ cp'
+              mkTable alig f heads cols ts ) ++ cp'
 
 transformB cb@(CodeBlock attr code) =
   let (i,cs,as) = fixCBAttr attr
