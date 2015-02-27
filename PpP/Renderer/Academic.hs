@@ -18,7 +18,7 @@ import Control.Monad.Trans.Class
 import Control.Monad.Trans.State
 import Data.Char (toLower)
 import Data.Maybe
-import Data.List (intersperse)
+import Data.List (intersperse, intercalate)
 
 import Paths_ppp
 import System.FilePath
@@ -38,6 +38,14 @@ config (Macro k v)   = case k of
                                     addOnce k ""
                          Just l  -> addOnce k $ metaVar "lang" lang ++
                                                 metaVar "locale" l
+
+  "def"             -> let ds = do
+                                d <- parseList v
+                                let x = trim . takeWhile (/='=') $ d
+                                    y = trim . drop 1 . dropWhile (/='=') $ d
+                                guard ((reverse . take 4 . reverse $ x) == "name")
+                                return $ "\n- \\def\\"++x++"{"++y++"}"
+                       in addOnce k . metaVar "language-terms" . concat $ ds
 
   "header"          -> let hs = parseList v in
                        case length hs of
