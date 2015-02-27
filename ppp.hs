@@ -44,7 +44,7 @@ main = do
                              "Try ppp --help for more info"
 
     []            -> do
-                     when (files == []) . error $ "nothing to do"
+                     when (files == []) $ putStrLn help
                      mapM_ renderFile files
                      putStrLn "done"
 
