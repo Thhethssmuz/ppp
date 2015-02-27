@@ -117,6 +117,7 @@ config (Macro k v)   = case k of
                        then add k $ inlineFunc' k v
                        else setCounter "atmainmatter-numdepth"
                           . maybe (-2) fst . listToMaybe $ reads v
+  "bmkdepth"        -> addOnce k $ metaVar k v
 
   "tableofcontents" -> do
                        addOnce k $ inlineFunc  ("ppp" ++ k) ""
