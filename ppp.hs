@@ -25,10 +25,13 @@ main = do
   args <- getArgs
 
   case args of 
-    [] -> do
-          putStrLn $ "ppp: called with no arguments"
-          exitFailure
-    _  -> return ()
+    []     -> do
+              putStrLn $ "ppp: called with no arguments"
+              exitFailure
+    ["-v"] -> do
+              putStrLn $ "ppp 0.2.4"
+              exitSuccess
+    _      -> return ()
 
   let fp = head args
   let file = takeFileName fp
