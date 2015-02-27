@@ -19,6 +19,7 @@ import Control.Monad.Trans.State
 import Data.Char (toLower)
 import Data.Maybe
 import Data.List (intersperse, intercalate)
+import Data.Version (showVersion)
 
 import Paths_ppp
 import System.FilePath
@@ -206,6 +207,7 @@ renderArticle doc out = do
   ppp       <- execStateT (mapM_ config doc) academicPpP{
                  writer = academicWriter{
                    writerVariables = [
+                     ("ppp-version", showVersion version),
                      ("documentclass", "scrartcl"),
                      ("rootlevel", "1"),
                      ("article", "true")
@@ -223,6 +225,7 @@ renderReport doc out = do
   ppp       <- execStateT (mapM_ config doc) academicPpP{
                  writer = academicWriter{
                    writerVariables = [
+                     ("ppp-version", showVersion version),
                      ("documentclass", "scrreprt"),
                      ("rootlevel", "0"),
                      ("report", "true")
