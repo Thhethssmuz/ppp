@@ -4,6 +4,11 @@ import PpP.Shared
 import PpP.PrePreProcess
 import PpP.Renderer
 
+import Paths_ppp
+import Data.List (intercalate)
+import Data.Version (showVersion)
+import Control.Monad
+
 import System.Environment
 import System.Directory
 import System.FilePath
@@ -22,23 +27,38 @@ render doc inn = let doc' = rmType False doc in case getType doc of
 
 main :: IO ()
 main = do
-  args <- getArgs
+  args            <- getArgs
+  let (flags, files) = foldl (\(a,b) x -> if take 1 x == "-" then (x:a,b) else (a,x:b)) ([],[]) args
 
-  case args of 
-    []     -> do
-              putStrLn $ "ppp: called with no arguments"
-              exitFailure
-    ["-v"] -> do
-              putStrLn $ "ppp 0.2.4"
-              exitSuccess
-    _      -> return ()
+  let help         = intercalate "\n" $ [
+                       "ppp [FLAG] [FILES]",
+                       "",
+                       "  -v --version",
+                       "  -h --help" ]
+  case flags of
+    ["-v"]        -> putStrLn ("ppp " ++ showVersion version)
+    ["--version"] -> putStrLn ("ppp " ++ showVersion version)
+    ["-h"]        -> putStrLn help
+    ["--help"]    -> putStrLn help
+    (x:_)         -> error $ "invalid option `" ++ x ++ "'\n" ++
+                             "Try ppp --help for more info"
 
-  let fp = head args
+    []            -> do
+                     when (files == []) . error $ "nothing to do"
+                     mapM_ renderFile files
+                     putStrLn "done"
+
+  exitSuccess
+
+renderFile :: FilePath -> IO ()
+renderFile fp = do
   let file = takeFileName fp
-  dir <- if isRelative fp then do
-                               cd <- getCurrentDirectory
-                               return . combine cd . dropFileName $ fp
-                          else return . dropFileName $ fp
+
+  cd  <- getCurrentDirectory
+  dir <- if isRelative fp
+         then do
+              return . combine cd . dropFileName $ fp
+         else return . dropFileName $ fp
 
   setCurrentDirectory . dropFileName $ fp
 
@@ -52,5 +72,4 @@ main = do
   doc <- prePreProcess file
   render doc file
 
-  putStrLn "done"
-  exitSuccess
+  setCurrentDirectory cd
