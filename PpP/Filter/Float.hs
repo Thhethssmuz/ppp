@@ -117,7 +117,7 @@ mkFloatI m (Span (i,cs,as) is) = Span ([],[],[]) $
       w   = not s && "wrap" `elem` cs
       y   = isJust . lookup "style" $ as
 
-      ft  = if f && (m > 1 || s) then "tbh" else "H"
+      ft  = if f && (m == 1 || s) then "tbh" else "H"
       st  = if s && f then "*" else ""
       wt  = wrapTypeCheck f . lookup "wrap" $ as
       yt  = maybe "plain" styleCheck . lookup "style" $ as
@@ -161,7 +161,7 @@ mkFloatB m (Div (i, cs, as) bs) = Div ([],[],[]) $
       w   = not s && "wrap" `elem` cs
       y   = isJust . lookup "style" $ as
 
-      ft  = if f && (m > 1 || s) then "tbh" else "H"
+      ft  = if f && (m == 1 || s) then "tbh" else "H"
       st  = if s && f then "*" else ""
       wt  = wrapTypeCheck f . lookup "wrap" $ as
       yt  = maybe "plain" styleCheck . lookup "style" $ as
