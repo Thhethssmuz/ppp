@@ -128,12 +128,13 @@ mkFloatI m (Span (i,cs,as) is) = Span ([],[],[]) $
       is' = filter (not . isCaptionI) . filter (/= Space) $ is
       nis = genericLength is'
 
-      wh  = showF . when' (not w) ((*0.95) . (/nis)) 
+      wh  = showF . when' (not w) ((*) (1 - 0.03 * (nis-1)) . (/nis))
           . maybe 1 parsePercent . lookup "width" $ as
       lb  = mkLabel t i
 
       cps = unSpan . map (mkCaptionI False (t=="misc")) . filter isCaptionI $ is
-      sub = map (wrapSubfloatI wh s al . subfloatI t) $ is'
+      sub = intersperse (tex "\\hspace{\\fill}")
+          . map (wrapSubfloatI wh s al . subfloatI t) $ is'
 
   in [ tex $ "}\\end{pppmulticol}" | s && not f ] ++
      [ tex $  "\\floatstyle{"++yt++"}\\restylefloat{"++t++"}" | y ] ++
@@ -169,12 +170,12 @@ mkFloatB m (Div (i, cs, as) bs) = Div ([],[],[]) $
       bs' = filter (not . isCaptionB) bs
       nbs = genericLength bs'
 
-      wh  = showF . when' (not w) ((*0.95) . (/nbs))
+      wh  = showF . when' (not w) ((*) (1 - 0.03 * (nbs-1)) . (/nbs))
           . maybe 1 parsePercent . lookup "width" $ as
       lb  = mkLabel t i
 
       cps = map (mkCaptionB False (t=="misc")) . filter isCaptionB $ bs
-      sub = concat . intersperse [Plain [tex "\\quad"]]
+      sub = concat . intersperse [Plain [tex "\\hspace{\\fill}"]]
           . map (wrapSubfloatB wh s al . subfloatB t) $ bs'
 
   in concatPlain $ [ Plain $
@@ -428,17 +429,22 @@ alignment a = case a of
   AlignCenter  -> ("c", "\\centering")
   AlignDefault -> ("l", "\\raggedright")
 
-wrapTableCell :: String -> String -> String -> TableCell -> [Block]
-wrapTableCell r w a x =
-  [Plain [ tex $ "\\begin{minipage}["++r++"]{"++w++"\\columnwidth}"++a++"\\strut\n" ]] ++
-  x ++
-  [Plain [ tex $ "\n\\strut\\end{minipage}" ]]
+wrapTableCell :: String -> String -> String -> String -> TableCell -> [Block]
+wrapTableCell l r w a x =
+  if w == "NaN"
+  then x
+  else [Plain [ tex $ "\\begin{minipage}["++r++"]{"++w++"\\columnwidth-"++l++"\\tabcolsep"++"}"++a++"\\strut\n" ]] ++
+       x ++
+       [Plain [ tex $ "\n\\strut\\end{minipage}" ]]
 
 mkTableRow :: String -> [String] -> [String] -> [TableCell] -> [Block]
-mkTableRow ra ws as xs = concatMap concatPlain
-                       . flip (++) ([[Plain [tex "\\tabularnewline\n"]]])
-                       . intersperse ([Plain [tex " \\and\n"]])
-                       . zipWith3 (wrapTableCell ra) ws as $ xs
+mkTableRow ra ws as xs =
+  let g = genericLength ws
+      l = if g == 1 then "1" else showF $ g / g / 2
+  in  concatMap concatPlain
+    . flip (++) ([[Plain [tex "\\tabularnewline\n"]]])
+    . intersperse ([Plain [tex " \\and\n"]])
+    . zipWith3 (wrapTableCell l ra) ws as $ xs
 
 mkTable :: [Alignment]
         -> [Double]
@@ -483,8 +489,8 @@ transformB (Table is alig space heads cols) =
       lb  = mkLabel "table" i
       l   = "long" `elem` cs
       w   = fmap (realToFrac . parsePercent) . lookup "width" $ as
-      s   = maybe space (\w -> map ((*) . (/) (w*0.95) . sum $ space) $ space) w
-      f   = maybe space (\w -> map ((*) . (/) (0.95) . sum $ space) $ space) w
+      s   = maybe space (\w -> map ((*) . (/) w . sum $ space) $ space) w
+      f   = maybe space (\w -> map ((*) . (/) 1 . sum $ space) $ space) w
       ts  = maybe "ruled" tableStyleCheck . lookup "tablestyle" $ as
   in case l of
     True -> Div ([],[],[]) [
