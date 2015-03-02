@@ -399,17 +399,16 @@
     multiple=true
   }
 
-  \usepackage{endnotes}
-  \newcommand\pppnotes{
-
-    \begingroup
-    \def\enotesize{\normalsize}
-    \addtoendnotes{\unexpanded{\enotedivision{}{}}}
-    \theendnotes
-    \endgroup
-
-    %\setcounter{endnote}{0}% messes up the hyper-refs, ok for print though
+  $if(pppnotes)$
+  \usepackage{enotez}
+  \DeclareInstance{enotez-list}{pppendnotes}{paragraph}{
+    notes-sep=-0.5\baselineskip,
+    format=\leftskip2.6em,
+    number=\makebox[0pt][r]{#1.\ },
   }
+  \let\footnote=\endnote
+  \newcommand\pppnotes{\printendnotes[pppendnotes]}
+  $endif$
 
 % -------------------------- B I B L I O G R A P H Y --------------------------
   \newenvironment{pppbibliography}{

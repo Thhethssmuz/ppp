@@ -130,16 +130,7 @@ config (Macro k v)   = case k of
 
   "csl"             -> addOnce k $ metaVar k v
 
-  "notes"           -> let v' = map toLower v in
-                       addOnce k $ inlineFunc "notes" "" ++
-                       case v' of
-                         "simple"  -> metaVar "notes-chapter" "true"
-                         "grouped" -> metaVar "notes-chapter" "true" ++
-                                      metaVar "grouped-notes" "true"
-                         ""        -> metaVar "notes" "true"
-                         _         -> metaVar "notes" "true" ++
-                                      pppErr ("unknown argument " ++ v' ++
-                                              " applied to macro notes")
+  "notes"           -> addOnce k $ raw "\\pppnotes" ++ metaVar "pppnotes" "true"
 
   "bibliography"    -> do
                        addOnce k $ metaList k v ++
