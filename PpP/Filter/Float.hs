@@ -429,22 +429,20 @@ alignment a = case a of
   AlignCenter  -> ("c", "\\centering")
   AlignDefault -> ("l", "\\raggedright")
 
-wrapTableCell :: String -> String -> String -> String -> TableCell -> [Block]
-wrapTableCell l r w a x =
-  if w == "NaN"
+wrapTableCell :: String -> String -> String -> TableCell -> [Block]
+wrapTableCell r w a x =
+  if w == "0.0000"
   then x
-  else [Plain [ tex $ "\\begin{minipage}["++r++"]{"++w++"\\columnwidth-"++l++"\\tabcolsep"++"}"++a++"\\strut\n" ]] ++
+  else [Plain [ tex $ "\\begin{minipage}["++r++"]{"++w++"\\columnwidth-0.5\\tabcolsep"++"}"++a++"\\strut\n" ]] ++
        x ++
        [Plain [ tex $ "\n\\strut\\end{minipage}" ]]
 
 mkTableRow :: String -> [String] -> [String] -> [TableCell] -> [Block]
 mkTableRow ra ws as xs =
-  let g = genericLength ws
-      l = if g == 1 then "1" else showF $ g / g / 2
-  in  concatMap concatPlain
-    . flip (++) ([[Plain [tex "\\tabularnewline\n"]]])
-    . intersperse ([Plain [tex " \\and\n"]])
-    . zipWith3 (wrapTableCell l ra) ws as $ xs
+    concatMap concatPlain
+  . flip (++) ([[Plain [tex "\\tabularnewline\n"]]])
+  . intersperse ([Plain [tex " \\and\n"]])
+  . zipWith3 (wrapTableCell ra) ws as $ xs
 
 mkTable :: [Alignment]
         -> [Double]
@@ -489,8 +487,11 @@ transformB (Table is alig space heads cols) =
       lb  = mkLabel "table" i
       l   = "long" `elem` cs
       w   = fmap (realToFrac . parsePercent) . lookup "width" $ as
-      s   = maybe space (\w -> map ((*) . (/) w . sum $ space) $ space) w
-      f   = maybe space (\w -> map ((*) . (/) 1 . sum $ space) $ space) w
+      sp  = if sum space == 0
+            then maybe space (\w -> map (const w) space) w
+            else space
+      s   = maybe sp (\w -> map ((*) . (/) w . sum $ sp) $ sp) w
+      f   = maybe sp (\w -> map ((*) . (/) 1 . sum $ sp) $ sp) w
       ts  = maybe "ruled" tableStyleCheck . lookup "tablestyle" $ as
   in case l of
     True -> Div ([],[],[]) [
