@@ -230,7 +230,15 @@
 
   $if(highlighting-macros)$
   $highlighting-macros$
+  $else$
+  \usepackage{color}
   $endif$
+
+  \definecolor{shadecolor}{RGB}{242,242,242}
+  \let\savedtexttt\texttt
+  \renewcommand{\texttt}[1]{%
+    \colorbox{shadecolor}{\savedtexttt{#1}}%
+  }
 
   % fix for longtable table counter bug
   \makeatletter

@@ -57,7 +57,7 @@ config (Macro k v)   = case k of
                          3 -> addOnce k $ metaVar "page-header-left"   (head hs) ++
                                           metaVar "page-header-centre" (hs !! 1) ++
                                           metaVar "page-header-right"  (last hs)
-                         _ -> do 
+                         _ -> do
                               add "err" . pppErr $ "to many arguments applied to macro " ++ k
                               config . Macro k . unlines . take 3 $ hs
 
@@ -70,7 +70,7 @@ config (Macro k v)   = case k of
                          3 -> addOnce k $ metaVar "page-footer-left"   (head fs) ++
                                           metaVar "page-footer-centre" (fs !! 1) ++
                                           metaVar "page-footer-right"  (last fs)
-                         _ -> do 
+                         _ -> do
                               add "err" . pppErr $ "to many arguments applied to macro " ++ k
                               config . Macro k . unlines . take 3 $ fs
 
