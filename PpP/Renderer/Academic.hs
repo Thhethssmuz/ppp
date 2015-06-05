@@ -76,6 +76,7 @@ config (Macro k v)   = case k of
 
   "page"            -> forM_ (map (map toLower) . parseList $ v) $ \x ->
                          case x of
+                           "oneside"   -> addOnce x $ metaVar "page-twoside" "false"
                            "twoside"   -> addOnce x $ metaVar "page-twoside" "true"
                            _           -> add "err" . pppErr $ "unknown argument '" ++ x ++ "' applied to page macro"
   "pagecols"        -> unless (v == "1") . addOnce k $ metaVar "page-columns" v
