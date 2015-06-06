@@ -51,12 +51,12 @@ config (Macro k v)   = case k of
   "header"          -> let hs = parseList v in
                        case length hs of
                          0 -> return ()
-                         1 -> addOnce k $ metaVar "page-header-centre" (head hs)
-                         2 -> addOnce k $ metaVar "page-header-left"   (head hs) ++
-                                          metaVar "page-header-right"  (last hs)
-                         3 -> addOnce k $ metaVar "page-header-left"   (head hs) ++
-                                          metaVar "page-header-centre" (hs !! 1) ++
-                                          metaVar "page-header-right"  (last hs)
+                         1 -> addOnce k $ metaVar "page-header-centre" (show $ head hs)
+                         2 -> addOnce k $ metaVar "page-header-left"   (show $ head hs) ++
+                                          metaVar "page-header-right"  (show $ last hs)
+                         3 -> addOnce k $ metaVar "page-header-left"   (show $ head hs) ++
+                                          metaVar "page-header-centre" (show $ hs !! 1) ++
+                                          metaVar "page-header-right"  (show $ last hs)
                          _ -> do
                               add "err" . pppErr $ "to many arguments applied to macro " ++ k
                               config . Macro k . unlines . take 3 $ hs
@@ -64,12 +64,12 @@ config (Macro k v)   = case k of
   "footer"          -> let fs = parseList v in
                        case length fs of
                          0 -> return ()
-                         1 -> addOnce k $ metaVar "page-footer-centre" (head fs)
-                         2 -> addOnce k $ metaVar "page-footer-left"   (head fs) ++
-                                          metaVar "page-footer-right"  (last fs)
-                         3 -> addOnce k $ metaVar "page-footer-left"   (head fs) ++
-                                          metaVar "page-footer-centre" (fs !! 1) ++
-                                          metaVar "page-footer-right"  (last fs)
+                         1 -> addOnce k $ metaVar "page-footer-centre" (show $ head fs)
+                         2 -> addOnce k $ metaVar "page-footer-left"   (show $ head fs) ++
+                                          metaVar "page-footer-right"  (show $ last fs)
+                         3 -> addOnce k $ metaVar "page-footer-left"   (show $ head fs) ++
+                                          metaVar "page-footer-centre" (show $ fs !! 1) ++
+                                          metaVar "page-footer-right"  (show $ last fs)
                          _ -> do
                               add "err" . pppErr $ "to many arguments applied to macro " ++ k
                               config . Macro k . unlines . take 3 $ fs
@@ -105,7 +105,7 @@ config (Macro k v)   = case k of
   "subject"         -> addOnce k $ metaBlock k v
   "title"           -> addOnce k $ metaBlock k v
   "subtitle"        -> addOnce k $ metaBlock k v
-  "author"          -> addOnce k $ metaList k v
+  "author"          -> addOnce k $ metaList k $ show v
   "date"            -> addOnce k $ metaBlock k v
   "publisher"       -> addOnce k $ metaBlock k v
   "keywords"        -> addOnce k $ metaList k v
