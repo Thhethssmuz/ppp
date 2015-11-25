@@ -342,53 +342,34 @@
     \addtocontents{toc}{\protect\setcounter{tocdepth}{\result}}
   }
 
+  % remove toc and listof titles
   \makeatletter
-  \newcommand\ppptableofcontents{
-    $if(report)$
-    \end{pppmulticol}
-    $endif$
-    \pppclear
-    \phantomsection
-
-    \FPeval{\result}{clip($rootlevel$ - 1)}
-    \ifnum \value{tocdepth} > \result
-      \addcontentsline{toc}{\ifnum $rootlevel$ = 0 chapter\fi\ifnum $rootlevel$ = 1 section\fi}{\contentsname}
-    \else
-      \bookmark[dest=\@currentHref,level=$rootlevel$]{\contentsname}
-    \fi
-
-    \tableofcontents
-
-    \pppclear
-    $if(report)$
-    \begin{pppmulticol}
-    $endif$
-
-    % default toc level for entries after the toc
-    % \tocdepth{3}
-  }
-  \newcommand\ppplistof[1]{
-    $if(report)$
-    \end{pppmulticol}
-    $endif$
-    \pppclear
-    \phantomsection
-
-    \FPeval{\result}{clip($rootlevel$ - 1)}
-    \ifnum \value{tocdepth} > \result
-      \addcontentsline{toc}{\ifnum $rootlevel$ = 0 chapter\fi\ifnum $rootlevel$ = 1 section\fi}{\csname list#1name\endcsname}
-    \else
-      \bookmark[dest=\@currentHref,level=$rootlevel$]{\csname list#1name\endcsname}
-    \fi
-
-    \listof{#1}{\csname list#1name\endcsname}
-
-    \pppclear
-    $if(report)$
-    \begin{pppmulticol}
-    $endif$
-  }
+  \deftocheading{toc}{}
+  \renewcommand\float@listhead[1]{}
   \makeatother
+
+  \newcommand\ppptableofcontents[1][1]{
+    $if(article)$$else$
+    \end{pppmulticol}
+    \ifthenelse{\equal{#1}{1}}{}{\begin{multicols}{#1}}
+    $endif$
+    \tableofcontents
+    $if(article)$$else$
+    \ifthenelse{\equal{#1}{1}}{}{\end{multicols}}
+    \begin{pppmulticol}
+    $endif$
+  }
+  \newcommand\ppplistof[2][1]{
+    $if(article)$$else$
+    \end{pppmulticol}
+    \ifthenelse{\equal{#1}{1}}{}{\begin{multicols}{#1}}
+    $endif$
+    \listof{#2}{}
+    $if(article)$$else$
+    \ifthenelse{\equal{#1}{1}}{}{\end{multicols}}
+    \begin{pppmulticol}
+    $endif$
+  }
 
 % ---------------------------- A P P E N D I C E S ----------------------------
   $if(report)$

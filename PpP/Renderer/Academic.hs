@@ -121,13 +121,20 @@ config (Macro k v)   = case k of
   "bmkdepth"        -> addOnce k $ metaVar k v
 
   "tableofcontents" -> do
-                       addOnce k $ inlineFunc  ("ppp" ++ k) ""
+                       let columns = if null v then "" else "[" ++ v ++ "]"
+                       addOnce k . raw $ "\\ppptableofcontents" ++ columns
+                       --addOnce k . inlineFunc  ("ppp" ++ k) ""
                        d <- counter "tocdepth"
                        unless (d > 0) . add "tocdepth" . raw $ "\\tocdepth{3}"
-  "listoffigures"   -> addOnce k $ inlineFunc' ("ppp" ++ "listof") "figure"
-  "listoftables"    -> addOnce k $ inlineFunc' ("ppp" ++ "listof") "table"
-  "listofprograms"  -> addOnce k $ inlineFunc' ("ppp" ++ "listof") "program"
-  "listofexamples"  -> addOnce k $ inlineFunc' ("ppp" ++ "listof") "example"
+
+  "listoffigures"   -> let columns = if null v then "" else "[" ++ v ++ "]"
+                       in  addOnce k . raw $ "\\ppplistof" ++ columns ++ "{figure}"
+  "listoftables"    -> let columns = if null v then "" else "[" ++ v ++ "]"
+                       in  addOnce k . raw $ "\\ppplistof" ++ columns ++ "table"
+  "listofprograms"  -> let columns = if null v then "" else "[" ++ v ++ "]"
+                       in  addOnce k . raw $ "\\ppplistof" ++ columns ++ "program"
+  "listofexamples"  -> let columns = if null v then "" else "[" ++ v ++ "]"
+                       in  addOnce k . raw $ "\\ppplistof" ++ columns ++ "example"
 
   "csl"             -> addOnce k $ metaVar k v
 
