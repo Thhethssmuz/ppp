@@ -1,0 +1,4 @@
+resolver: lts-2.22
+system-ghc: false
+packages:
+- '.'
