@@ -45,7 +45,7 @@ when' _    _ x = x
 
 wrapSubfloatI :: String -> Bool -> [String] -> Inline -> Inline
 wrapSubfloatI wh s [x,y] i = Span ([],[],[]) $
-  let s'  = if s then "\\textwidth" else "\\linewidth" 
+  let s'  = if s then "\\textwidth" else "\\linewidth"
   in [ tex $ "\n\\begin{minipage}["++x++"]{"++wh++s'++"}\n",
        tex $ y++"{\n",
        i,
@@ -59,7 +59,7 @@ wrapSubfloatB wh s [x,y] b =
        [ tex $ "\\begin{minipage}["++x++"]{"++wh++s'++"}",
          tex $ y ],
        b,
-       Plain $ 
+       Plain $
        [ tex $ "\\end{minipage}" ] ]
 
 unSpan :: [Inline] -> [Inline]
@@ -93,7 +93,7 @@ mkCaptionB sub stared (Plain [Span (_,["caption"],_) is]) = Plain $
 -------------------------------------------------------------------------------
 
 mkSubfloatI :: String -> Inline -> Inline
-mkSubfloatI t (Span (i,cs,as) is) = Span ([],[],[]) $ 
+mkSubfloatI t (Span (i,cs,as) is) = Span ([],[],[]) $
   let sub = filter (not . isCaptionI) . filter (/= Space) $ is
       lb  = mkLabel t i
       cps = unSpan . map (mkCaptionI True (t=="misc")) . filter isCaptionI $ is
@@ -139,7 +139,7 @@ mkFloatI m (Span (i,cs,as) is) = Span ([],[],[]) $
   in [ tex $ "}\\end{pppmulticol}" | s && not f ] ++
      [ tex $  "\\floatstyle{"++yt++"}\\restylefloat{"++t++"}" | y ] ++
      [ tex "\n",
-       tex $ if w 
+       tex $ if w
          then "\\begin{wrapfloat}{"++t++"}{"++wt++"}{"++wh++"\\linewidth}\n"
          else "\\begin{"++t++st++"}["++ft++"]\n",
        tex $  "\\centering\n" ] ++
@@ -181,7 +181,7 @@ mkFloatB m (Div (i, cs, as) bs) = Div ([],[],[]) $
   in concatPlain $ [ Plain $
        [ tex $ "\\end{pppmulticol}" | s && not f ] ++
        [ tex $  "\\floatstyle{"++yt++"}\\restylefloat{"++t++"}" | y ] ++
-       [ tex $ if w 
+       [ tex $ if w
            then "\\begin{wrapfloat}{"++t++"}{"++wt++"}{"++wh++"\\linewidth}"
            else "\\begin{"++t++st++"}["++ft++"]",
          tex $  "\\centering" ]
@@ -252,7 +252,7 @@ typeCheck [x] = x
 typeCheck _   = "misc"
 
 wrapTypeCheck :: Bool -> Maybe String -> String
-wrapTypeCheck float wrap = 
+wrapTypeCheck float wrap =
   when' float (map toUpper)
   . fromMaybe "o" $ do
       x <- wrap
@@ -377,7 +377,7 @@ extractCaption (x:xs) = x : extractCaption xs
 extractCaption [] = []
 
 splitCaptionAttr :: [Inline] -> ([Inline], Attr)
-splitCaptionAttr is = 
+splitCaptionAttr is =
   let as = extractAttrString is
       cp = extractCaption is
   in case parse parseAttr "" as of
@@ -510,11 +510,11 @@ transformB cb@(CodeBlock attr code) =
       cp1 = maybeToList $ do
               c <- lookup "caption" as
               return . tex $ "\\pppcaptionof{"++c++"}"
-      cp2 = maybeToList 
+      cp2 = maybeToList
           . fmap (\x -> Plain [Span ([],["caption"],[]) [Str x]])
           . lookup "caption" $ as
-      
-  in case (l,s) of 
+
+  in case (l,s) of
         (True,True)  -> Div ([],[],[]) [
                           Plain $ [ tex "\\end{pppmulticol}" ] ++ cp1 ++ lb,
                           CodeBlock ([],cs,as) code,
