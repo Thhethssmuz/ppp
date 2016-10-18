@@ -440,8 +440,8 @@ wrapTableCell r w a x =
 mkTableRow :: String -> [String] -> [String] -> [TableCell] -> [Block]
 mkTableRow ra ws as xs =
     concatMap concatPlain
-  . flip (++) ([[Plain [tex "\\tabularnewline\n"]]])
-  . intersperse ([Plain [tex " \\and\n"]])
+  . flip (++) ([[Plain [tex "\\\\\n"]]])
+  . intersperse ([Plain [tex " &\n"]])
   . zipWith3 (wrapTableCell ra) ws as $ xs
 
 mkTable :: [Alignment]
