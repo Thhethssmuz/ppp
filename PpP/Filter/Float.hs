@@ -429,11 +429,11 @@ alignment a = case a of
   AlignCenter  -> ("c", "\\centering")
   AlignDefault -> ("l", "\\raggedright")
 
-wrapTableCell :: String -> String -> String -> TableCell -> [Block]
-wrapTableCell r w a x =
+wrapTableCell :: String -> String -> String -> TableCell -> Int -> [Block]
+wrapTableCell r w a x s =
   if w == "0.0000"
   then x
-  else [Plain [ tex $ "\\begin{minipage}["++r++"]{"++w++"\\columnwidth-0.5\\tabcolsep"++"}"++a++"\\strut\n" ]] ++
+  else [Plain [ tex $ "\\begin{minipage}["++r++"]{"++w++"\\columnwidth-"++show s++"\\tabcolsep"++"}"++a++"\\strut\n" ]] ++
        x ++
        [Plain [ tex $ "\n\\strut\\end{minipage}" ]]
 
@@ -442,7 +442,11 @@ mkTableRow ra ws as xs =
     concatMap concatPlain
   . flip (++) ([[Plain [tex "\\\\\n"]]])
   . intersperse ([Plain [tex " &\n"]])
-  . zipWith3 (wrapTableCell ra) ws as $ xs
+  . zipWith4 (wrapTableCell ra) ws as xs
+  . (\xs -> head xs - 1 : tail xs)
+  . reverse
+  . (\xs -> head xs - 1 : tail xs)
+  $ map (const 2) xs
 
 mkTable :: [Alignment]
         -> [Double]
