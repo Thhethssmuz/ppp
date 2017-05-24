@@ -1,0 +1,25 @@
+name:                ppp
+version:             0.3.2
+homepage:            https://github.com/Thhethssmuz/ppp
+license:             MIT
+license-file:        LICENSE
+author:              Svein Inge Albrigtsen
+maintainer:          thhethssmuz@gmail.com
+category:            Text
+build-type:          Simple
+cabal-version:       >=1.22
+-- data-files:          csl/*.csl
+--                      tex/*.tex
+
+executable ppp
+  main-is:             Main.hs
+
+  build-depends:       base >=4 && < 5,
+                       pandoc >= 1.19 && < 1.20,
+                       pandoc-citeproc >= 0.10 && < 0.11,
+                       pandoc-types >= 1.17 && < 1.18
+
+  other-modules:       Paths_ppp
+
+  default-language:    Haskell2010
+  hs-source-dirs:      src
