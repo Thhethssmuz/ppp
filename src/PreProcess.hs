@@ -27,13 +27,20 @@ groupBlocks
 
 processMacro :: String -> IO String
 processMacro block = do
-  let block' = drop 1 block
-      macro  = map toLower . trim . takeWhile (/= ':') $ block'
-      inner  = trim . dropWhile (== ':') . dropWhile (/= ':') $ block'
+  let block'  = drop 1 block
+      macro   = map toLower . trim . takeWhile (/= ':') $ block'
+      inner   = dropWhile (/= ':') $ block'
+      colon   = map toLower . show . not . null $ inner
+      content = if null inner then "" else tail $ inner
 
   if macro == "include"
     then fmap (concatMap ("\n\n" ++)) . mapM (include . trim) . lines $ inner
-    else return $ "\n\n<div ppp=\"" ++ macro ++ "\">" ++ inner ++ "</div>\n\n"
+    else return $ "\n\n<div " ++
+                  "ppp=\"" ++ macro ++ "\" " ++
+                  "ppp-has-content=\"" ++ colon ++ "\" " ++
+                  "ppp-raw=" ++ (show . trim $ content) ++ ">\n" ++
+                  content ++
+                  "\n</div>\n\n"
 
 processMacros :: [String] -> IO String
 processMacros [] = return ""
