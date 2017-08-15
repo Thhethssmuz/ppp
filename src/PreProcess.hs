@@ -3,7 +3,9 @@ module PreProcess (include) where
 import Control.Monad (when)
 import Data.Char (isSpace, toLower)
 import Data.List (intercalate, groupBy)
+import Data.Maybe (fromMaybe)
 import System.Directory (doesFileExist)
+import Text.Pandoc.Shared (splitBy)
 
 trim :: String -> String
 trim = f . f where f = reverse . dropWhile isSpace
@@ -29,18 +31,27 @@ processMacro :: String -> IO String
 processMacro block = do
   let block'  = drop 1 block
       macro   = map toLower . trim . takeWhile (/= ':') $ block'
-      inner   = dropWhile (/= ':') $ block'
-      colon   = map toLower . show . not . null $ inner
-      content = if null inner then "" else tail $ inner
+      inner   = (\xs -> if null xs then Nothing else Just $ tail xs)
+              . dropWhile (/= ':') $ block'
+
+      raw     = fromMaybe "" . fmap ((" ppp-raw="++) . show) $ inner
+      inlines = fromMaybe ""
+              . fmap ( ("<span class=\"ppp-inlines\">\n"++)
+                     . (++"</span>\n")
+                     . concatMap (("<span>"++) . (++"</span>\n"))
+                     . filter (not . null)
+                     . map trim
+                     . splitBy (== '\n')
+                     ) $ inner
+      blocks  = fromMaybe ""
+              . fmap ( ("<div class=\"ppp-blocks\">\n"++)
+                     . (++"</div>\n")
+                     ) $ inner
 
   if macro == "include"
-    then fmap (concatMap ("\n\n" ++)) . mapM (include . trim) . lines $ inner
-    else return $ "\n\n<div " ++
-                  "ppp=\"" ++ macro ++ "\" " ++
-                  "ppp-has-content=\"" ++ colon ++ "\" " ++
-                  "ppp-raw=" ++ (show . trim $ content) ++ ">\n" ++
-                  content ++
-                  "\n</div>\n\n"
+    then fmap (concatMap ("\n\n" ++)) . mapM (include . trim) . lines . fromMaybe "" $ inner
+    else return $ "\n\n<div ppp=" ++ (show macro) ++ raw ++ ">\n" ++
+                  inlines ++ blocks ++ "</div>\n\n"
 
 processMacros :: [String] -> IO String
 processMacros [] = return ""
