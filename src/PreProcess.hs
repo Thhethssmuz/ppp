@@ -34,7 +34,7 @@ processMacro block = do
       inner   = (\xs -> if null xs then Nothing else Just $ tail xs)
               . dropWhile (/= ':') $ block'
 
-      raw     = fromMaybe "" . fmap ((" ppp-raw="++) . show) $ inner
+      raw     = fromMaybe "" . fmap ((" ppp-raw="++) . show . trim) $ inner
       inlines = fromMaybe ""
               . fmap ( ("<span class=\"ppp-inlines\">\n"++)
                      . (++"</span>\n")
