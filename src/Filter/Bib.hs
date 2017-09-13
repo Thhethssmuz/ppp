@@ -55,7 +55,7 @@ replaceBibMarkers x = x
 
 wrapBibliography :: Block -> Block
 wrapBibliography (Div ("refs",_,_) bs) =
-  Div ("",[],[]) $ [tex "\\begin{itemize}"] ++ bs ++ [tex "\\end{itemize}"]
+  Div ("",["references"],[]) $ [tex "\\begin{itemize}"] ++ bs ++ [tex "\\end{itemize}"]
 wrapBibliography x = x
 
 
