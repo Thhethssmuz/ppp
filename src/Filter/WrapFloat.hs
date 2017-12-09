@@ -260,23 +260,23 @@ pairWalk f (Pandoc meta bs) = Pandoc meta $ pairWalk' bs
     sub (Div a bs)             = Div a $ pairWalk' bs
     sub b                      = b
 
-wrap :: String -> Block -> Attr -> [Inline] -> Block
-wrap t b (i,cs,as) [] = Div (i,"box":t:cs,as) [b]
-wrap t b (i,cs,as) is = Div (i,"box":t:cs,as) [b, c]
+wrap :: String -> Block -> [Inline] -> Attr -> Block
+wrap t b [] (i,cs,as) = Div (i,"box":t:cs,as) [b]
+wrap t b is (i,cs,as) = Div (i,"box":t:cs,as) [b, c]
   where c = Plain [Span ([],["caption"],[]) is]
 
 pairTransform :: Block -> Block -> (Either Block Block, Block)
 pairTransform (Para [Image attr caption (url, _)]) sibling =
   let fig = RawBlock (Format "tex")
           $ "\\includegraphics[width=\\linewidth]{" ++ url ++ "}"
-  in  (Left $ wrap "figure" fig attr caption, sibling)
+  in  (Left $ wrap "figure" fig caption attr, sibling)
 
 pairTransform (Table is al ws bss bsss) sibling =
   let (caption, attr@(_,cs,_)) = splitCaptionAttr $ trimInline is
       long  = elem "long" cs
       table = Table caption al ws bss bsss
       rndrd = Div nullAttr $ runBlockWriter (mkTable table attr) []
-      final = if long then rndrd else wrap "table" rndrd attr caption
+      final = if long then rndrd else wrap "table" rndrd caption attr
   in  (Right final, sibling)
 
 pairTransform cb@(CodeBlock (pi,pcs,pas) code) sibling = case sibling of
@@ -286,7 +286,7 @@ pairTransform cb@(CodeBlock (pi,pcs,pas) code) sibling = case sibling of
         cb'   = CodeBlock attr code
         long  = elem "long" cs
         rndrd = Div nullAttr $ runBlockWriter (mkProgram cb' caption) []
-        final = if long then rndrd else wrap "program" rndrd attr caption
+        final = if long then rndrd else wrap "program" rndrd caption attr
     in  (Left final, Null)
   Para (Str (':':s) : is) ->
     let (caption, (ci,ccs,cas)) = splitCaptionAttr . trimInline $ Str s : is
@@ -294,14 +294,25 @@ pairTransform cb@(CodeBlock (pi,pcs,pas) code) sibling = case sibling of
         cb'   = CodeBlock attr code
         long  = elem "long" cs
         rndrd = Div nullAttr $ runBlockWriter (mkProgram cb' caption) []
-        final = if long then rndrd else wrap "program" rndrd attr caption
+        final = if long then rndrd else wrap "program" rndrd caption attr
     in  (Left final, Null)
   _ ->
-    (Left $ wrap "program" cb (pi,pcs,pas) [], sibling)
+    (Left $ wrap "program" cb [] (pi,pcs,pas), sibling)
+
+pairTransform form@(Para [math@(Math DisplayMath _)]) sibling =
+  let ((caption, attr), sibling') = case sibling of
+        Para (Str ('F':'o':'r':'m':'u':'l':'a':':':s) : is) ->
+          (splitCaptionAttr . trimInline $ Str s : is, Null)
+        Para (Str (':':s) : is) ->
+          (splitCaptionAttr . trimInline $ Str s : is, Null)
+        _ -> (([], nullAttr), sibling)
+      space = "\\vspace{-\\abovedisplayskip}\\vspace{-.4\\normalbaselineskip}"
+      form' = Plain [RawInline (Format "tex") space, math]
+  in  (Left $ wrap "formula" form' caption attr, sibling')
 
 pairTransform block sibling = (Right block, sibling)
 
 
 
 wrapFloat :: Pandoc -> Pandoc
-wrapFloat = pairWalk pairTransform . (\x -> traceShow x x)
+wrapFloat = pairWalk pairTransform

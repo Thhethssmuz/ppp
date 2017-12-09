@@ -166,10 +166,11 @@ mkFloat parent inheritedWidth this@(Div (i,cs,as) bs) = do
     tex $ "\\label{" ++ i ++ "}"
 
   when (box && not wrap) $ do
+    tex $ "\\vspace{-\\intextsep}"
     tex $ "\\end{" ++ env' ++ "}"
 
   when (box && wrap) $ do
-    tex $ "\\vspace{-\\intextsep}"
+    tex $ "\\vspace{-.66\\intextsep}"
     tex $ "\\end{wrapfloat}"
 
   when (isJust parent) $ do
