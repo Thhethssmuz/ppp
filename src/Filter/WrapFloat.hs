@@ -161,12 +161,13 @@ mkTable (Table caption al ws head rows) (i,cs,as) = do
                            return xs
 
   when (long && span) . tex $ "\\end{pppmulticol}"
+  when (long) . tex $ "\\vspace{\\intextsep}"
   tex $ "\\begin{" ++ env ++ "}{@{}" ++ align ++ "@{}}"
 
   when (long && not (null caption) && style == "plaintop") $ do
     tex $ "\\caption" ++ (if numb then "" else "*") ++ "{"
     inlines caption
-    tex $ "}"
+    tex $ "}\\\\"
   when (long && not (null i) && style == "plaintop") $ do
     tex $ "\\label{" ++ i ++ "}"
 
