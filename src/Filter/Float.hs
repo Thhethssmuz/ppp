@@ -4,6 +4,7 @@ import BlockWriter
 
 import Control.Applicative ((<|>))
 import Control.Monad
+import Data.Char (toUpper)
 import Data.Maybe
 import Data.List (genericLength, intersperse)
 import Numeric (showFFloat)
@@ -77,7 +78,7 @@ mkFloat parent inheritedWidth this@(Div (i,cs,as) bs) = do
   let box   = elem "box" cs
       float = elem "float" cs
       span  = elem "span" cs
-      wrap  = not span && "wrap" `elem` cs
+      wrap  = isNothing parent && not span && "wrap" `elem` cs
 
       (children, caption) = if box then splitBoxComponents bs else (bs, Nothing)
 
@@ -87,10 +88,10 @@ mkFloat parent inheritedWidth this@(Div (i,cs,as) bs) = do
 
       dw    = if wrap then 0.5 else 1
       width = fromMaybe dw $ inheritedWidth <|> blockWidth this
-      -- width'= if wrap then 1 else width
+      width'= if wrap then 1 else width
       style = (\x -> if elem x boxStyles then x else "plain")
             . fromMaybe "plain" . lookup "style" $ as
-      pos   = if isNothing parent && float then "tbh" else "H"
+      pos   = if isNothing parent && float && not wrap then "tbh" else "H"
 
       -- len   = if isNothing parent && span then "\\textwidth" else "\\linewidth"
       (x,y) = fromMaybe ("\\centering","t") $ do
@@ -101,7 +102,8 @@ mkFloat parent inheritedWidth this@(Div (i,cs,as) bs) = do
                     yFirst = (,) <$> (lookup (as !! 1) boxAlignX)
                                  <*> (lookup (as !! 0) boxAlignY)
                 xFirst <|> yFirst
-      w     = fromMaybe "o" $ do
+      w     = (if float then map toUpper else id)
+            . fromMaybe "o" $ do
                 a <- lookup "wrap" as
                 lookup a boxAlignW
 
@@ -112,30 +114,33 @@ mkFloat parent inheritedWidth this@(Div (i,cs,as) bs) = do
   when (isNothing parent && span && not float) $ do
     tex $ "\\end{pppmulticol}"
 
+  when (isJust parent) $ do
+    -- tex $ "\\cprotect\\fbox{\\begin{minipage}[" ++ y ++ "]{" ++ showF width ++ "\\linewidth-2\\fboxsep-2\\fboxrule}%"
+    tex $ "\\begin{minipage}[" ++ y ++ "]{" ++ showF width ++ "\\linewidth}"
+
+  when (box && wrap) $ do
+    tex $ "\\begin{wrapfloat}{misc}{" ++ w ++ "}{" ++ showF width ++ "\\linewidth}"
+    tex $ "\\vspace{-\\intextsep}"
+    tex $ "\\begingroup"
+    tex $ "\\setlength{\\intextsep}{0pt}"
+    -- tex $ "\\cprotect\\fbox{\\begin{minipage}[" ++ y ++ "]{\\linewidth-2\\fboxsep-2\\fboxrule}%"
+    tex $ "\\begin{minipage}[" ++ y ++ "]{\\linewidth}"
+
   when (box && style /= "plain") $ do
     tex $ "\\floatstyle{" ++ style ++ "}"
     tex $ "\\restylefloat{" ++ env ++ "}"
 
-  when (isJust parent) $ do
-    -- tex $ "\\cprotect\\fbox{\\begin{minipage}[" ++ y ++ "]{" ++ showF width ++ "\\linewidth-2\\fboxsep-2\\fboxrule}%"
-    tex $ "\\begin{minipage}[" ++ y ++ "]{" ++ showF width ++ "\\linewidth}"
-    tex $ "\\begingroup"
-    tex $ "\\setlength{\\intextsep}{0pt}"
-
-  when (box && not wrap) $ do
+  when (box && Just env /= penv) $ do
     tex $ "\\begin{" ++ env' ++ "}[" ++ pos ++ "]"
-
-  when (box && wrap) $ do
-    tex $ "\\begin{wrapfloat}{" ++ env ++ "}{" ++ w ++ "}{" ++ showF width ++ "\\linewidth}"
-    tex $ "\\vspace{-\\intextsep}"
 
   unless (null x) $ do
     tex $ x
 
   when (isNothing parent) $ do
-    let wf = showF $ if wrap then 1 else width
-    -- tex $ "\\cprotect\\fbox{\\begin{minipage}[" ++ y ++ "]{" ++ wf ++ "\\linewidth-2\\fboxsep-2\\fboxrule}%"
-    tex $ "\\begin{minipage}[" ++ y ++ "]{" ++ wf ++ "\\linewidth}"
+    -- tex $ "\\cprotect\\fbox{\\begin{minipage}[" ++ y ++ "]{" ++ showF width' ++ "\\linewidth-2\\fboxsep-2\\fboxrule}%"
+    tex $ "\\begin{minipage}[" ++ y ++ "]{" ++ showF width' ++ "\\linewidth}"
+    tex $ "\\begingroup"
+    tex $ "\\setlength{\\intextsep}{0pt}"
 
   if not box
     then blocks bs
@@ -154,6 +159,7 @@ mkFloat parent inheritedWidth this@(Div (i,cs,as) bs) = do
                 $ children
 
   when (isNothing parent) $ do
+    tex $ "\\endgroup"
     -- tex $ "\\end{minipage}}"
     tex $ "\\end{minipage}"
 
@@ -165,22 +171,26 @@ mkFloat parent inheritedWidth this@(Div (i,cs,as) bs) = do
   unless (null i) $ do
     tex $ "\\label{" ++ i ++ "}"
 
-  when (box && not wrap) $ do
-    tex $ "\\vspace{-\\intextsep}"
+  when (box && Just env /= penv) $ do
     tex $ "\\end{" ++ env' ++ "}"
-
-  when (box && wrap) $ do
-    tex $ "\\vspace{-.66\\intextsep}"
-    tex $ "\\end{wrapfloat}"
-
-  when (isJust parent) $ do
-    tex $ "\\endgroup"
-    -- tex $ "\\end{minipage}}"
-    tex $ "\\end{minipage}"
 
   when (box && style /= "plain") $ do
     tex $ "\\floatstyle{plain}"
     tex $ "\\restylefloat{" ++ env ++ "}"
+
+  when (box && wrap) $ do
+    -- tex $ "\\end{minipage}}"
+    tex $ "\\end{minipage}"
+    tex $ "\\endgroup"
+    tex $ "\\vspace{-\\intextsep}"
+    tex $ "\\end{wrapfloat}"
+
+  when (isNothing parent && not wrap) $ do
+    tex $ "\\vspace{-\\intextsep}"
+
+  when (isJust parent) $ do
+    -- tex $ "\\end{minipage}}"
+    tex $ "\\end{minipage}"
 
   when (isNothing parent && span && not float) $ do
     tex $ "\\begin{pppmulticol}"
