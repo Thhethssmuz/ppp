@@ -208,13 +208,13 @@ mkProgram cb@(CodeBlock (i,cs,as) code) caption = do
       numb    = not (null caption) && "unnumbered" `notElem` cs
 
   when (long && span) . tex $ "\\end{pppmulticol}"
-  when (long && not span) . tex $ "\\begin{ShadedLong}"
+  when (long && not span) . tex $ "\\begin{LongVerbatim}\\begin{ShadedLong}"
 
   when (long && not (null caption) && style /= "plaintop") $ do
-    tex "\\captionsetup{type=program}"
+    tex $ "\\captionsetup{type=program}"
 
   when (long && not (null caption) && style == "plaintop") $ do
-    tex "\\captionsetup{type=program}"
+    tex $ "\\captionsetup{type=program}"
     tex $ "\\caption{"
     inlines caption
     tex $ "}"
@@ -230,7 +230,7 @@ mkProgram cb@(CodeBlock (i,cs,as) code) caption = do
   when (long && not (null i) && style /= "plaintop") $ do
     tex $ "\\label{" ++ i ++ "}"
 
-  when (long && not span) . tex $ "\\end{ShadedLong}"
+  when (long && not span) . tex $ "\\end{ShadedLong}\\end{LongVerbatim}"
   when (long && span) . tex $ "\\begin{pppmulticol}"
 
 
