@@ -142,6 +142,8 @@ mkFloat parent inheritedWidth this@(Div (i,cs,as) bs) = do
     tex $ "\\begingroup"
     tex $ "\\setlength{\\intextsep}{0pt}"
 
+  tex $ "%--trim--%"
+
   if not box
     then blocks bs
     else do
@@ -154,9 +156,11 @@ mkFloat parent inheritedWidth this@(Div (i,cs,as) bs) = do
                           else ws)
               . map (<|> Just w) $ ws
 
-      sequence_ . intersperse (tex "\\hfill")
+      sequence_ . intersperse (tex "%--trim--%\n\\hfill\n%--trim--%")
                 . zipWith (mkFloat $ Just this) ws'
                 $ children
+
+  tex $ "%--trim--%"
 
   when (isNothing parent) $ do
     tex $ "\\endgroup"
