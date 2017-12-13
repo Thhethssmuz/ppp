@@ -13,8 +13,7 @@ import Data.List (elemIndex, genericLength, intersperse, intercalate, zipWith4)
 import Numeric (showFFloat)
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared (splitBy, stringify)
--- import Text.Pandoc.Walk
-import Debug.Trace
+import Text.Pandoc.Walk
 
 
 showD :: Double -> String
@@ -103,6 +102,40 @@ splitCaptionAttr is =
         Right attr -> (trimInline xs, attr)
         Left  _    -> (is, nullAttr)
 
+getCaptionAttr :: Block -> Maybe (String, [Inline], Attr)
+getCaptionAttr (Para (Str s : is)) = case takeWhile' (/=':') s of
+  "Figure:"  -> Just ("figure", caption, attr)
+  "Table:"   -> Just ("table", caption, attr)
+  "Formula:" -> Just ("formula", caption, attr)
+  "Program:" -> Just ("program", caption, attr)
+  "Example:" -> Just ("example", caption, attr)
+  ":"        -> Just ("misc", caption, attr)
+  _          -> Nothing
+  where
+    s'                  = drop 1 $ dropWhile (/=':') s
+    (caption, attr)     = splitCaptionAttr . trimInline $ Str s' : is
+    takeWhile' _ []     = []
+    takeWhile' p (x:xs) = x : if p x then takeWhile' p xs else []
+getCaptionAttr _ = Nothing
+
+merge :: (String, [Inline], Attr) -> (String, [Inline], Attr) -> (String, [Inline], Attr)
+merge (xenv, xcaption, (xi,xcs,xas)) (yenv, ycaption, (yi,ycs,yas)) =
+  let env     = if null yenv then xenv else yenv
+      caption = if null ycaption then xcaption else ycaption
+      i       = if null yi then xi else yi
+      cs      = ycs ++ xcs
+      as      = yas ++ xas
+  in  (env, caption, (i,cs,as))
+
+splitBoxComponents :: [Block] -> ([Block],Maybe Inline)
+splitBoxComponents = foldr f ([], Nothing)
+  where
+    f b (bs,c) = if caption b then (bs, Just $ span b) else (b:bs, c)
+    caption (Plain [Span (_,cs,_) _]) = elem "caption" cs
+    caption (Para  [Span (_,cs,_) _]) = elem "caption" cs
+    caption _ = False
+    span (Plain [x]) = x
+    span (Para  [x]) = x
 
 
 tableColumnAlignX =
@@ -256,54 +289,62 @@ wrap t bs [] (i,cs,as) = Div (i,"box":t:cs,as) bs
 wrap t bs is (i,cs,as) = Div (i,"box":t:cs,as) (bs++[c])
   where c = Plain [Span ([],["caption"],[]) is]
 
-pairTransform :: Block -> Block -> (Either Block Block, Block)
+pairTransform :: Block -> Block -> (Block, Block)
 pairTransform (Para [Image attr caption (url, _)]) sibling =
-  let fig = RawBlock (Format "tex")
+  let env = "figure"
+      fig = RawBlock (Format "tex")
           $ "\\includegraphics[width=\\linewidth]{" ++ url ++ "}"
-  in  (Left $ wrap "figure" fig caption attr, sibling)
 
-pairTransform (Table is al ws bss bsss) sibling =
-  let (caption, attr@(_,cs,_)) = splitCaptionAttr $ trimInline is
-      long  = elem "long" cs
-      table = Table caption al ws bss bsss
-      rndrd = Div nullAttr $ runBlockWriter (mkTable table attr) []
-      final = if long then rndrd else wrap "table" rndrd caption attr
-  in  (Right final, sibling)
+  in  case fmap (merge (env, caption, attr)) $ getCaptionAttr sibling of
+    Just (env, caption, attr) -> (wrap env [fig] caption attr, Null)
+    Nothing                   -> (wrap env [fig] caption attr, sibling)
 
-pairTransform cb@(CodeBlock (pi,pcs,pas) code) sibling = case sibling of
-  Para (Str ('P':'r':'o':'g':'r':'a':'m':':':s) : is) ->
-    let (caption, (ci,ccs,cas)) = splitCaptionAttr . trimInline $ Str s : is
-        attr@(i,cs,as) = (if null ci then pi else ci, ccs ++ pcs, cas ++ pas)
-        cb'   = CodeBlock attr code
-        long  = elem "long" cs
-        rndrd = Div nullAttr $ runBlockWriter (mkProgram cb' caption) []
-        final = if long then rndrd else wrap "program" rndrd caption attr
-    in  (Left final, Null)
-  Para (Str (':':s) : is) ->
-    let (caption, (ci,ccs,cas)) = splitCaptionAttr . trimInline $ Str s : is
-        attr@(i,cs,as) = (if null ci then pi else ci, ccs ++ pcs, cas ++ pas)
-        cb'   = CodeBlock attr code
-        long  = elem "long" cs
-        rndrd = Div nullAttr $ runBlockWriter (mkProgram cb' caption) []
-        final = if long then rndrd else wrap "program" rndrd caption attr
-    in  (Left final, Null)
-  _ ->
-    (Left $ wrap "program" cb [] (pi,pcs,pas), sibling)
+pairTransform (Table caption al ws bss bsss) sibling =
+  let env    = "table"
+      attr   = nullAttr
 
-pairTransform form@(Para [math@(Math DisplayMath _)]) sibling =
-  let ((caption, attr), sibling') = case sibling of
-        Para (Str ('F':'o':'r':'m':'u':'l':'a':':':s) : is) ->
-          (splitCaptionAttr . trimInline $ Str s : is, Null)
-        Para (Str (':':s) : is) ->
-          (splitCaptionAttr . trimInline $ Str s : is, Null)
-        _ -> (([], nullAttr), sibling)
-      space = "\\vspace{-\\abovedisplayskip}\\vspace{-.4\\normalbaselineskip}"
-      form' = Plain [RawInline (Format "tex") space, math]
-  in  (Left $ wrap "formula" form' caption attr, sibling')
+      render env caption attr@(_,cs,_) =
+        let table = Table caption al ws bss bsss
+            long  = elem "long" cs
+            rndrd = Div nullAttr $ runBlockWriter (mkTable table attr) []
+        in  if long then rndrd else wrap env [rndrd] caption attr
 
-pairTransform block sibling = (Right block, sibling)
+  in  case fmap (merge (env, caption, attr)) $ getCaptionAttr sibling of
+    Just (env, caption, attr) -> (render env caption attr, Null)
+    Nothing                   -> (render env caption attr, sibling)
+
+pairTransform (CodeBlock attr code) sibling =
+  let env     = "program"
+      caption = []
+
+      render env caption attr@(_,cs,_) =
+        let prog  = CodeBlock attr code
+            long  = elem "long" cs
+            rndrd = Div nullAttr $ runBlockWriter (mkProgram prog caption) []
+        in  if long then rndrd else wrap env [rndrd] caption attr
+
+  in  case fmap (merge (env, caption, attr)) $ getCaptionAttr sibling of
+    Just (env, caption, attr) -> (render env caption attr, Null)
+    Nothing                   -> (render env caption attr, sibling)
+
+pairTransform div@(Div attr@(_,cs,_) bs) sibling =
+  let box = elem "box" cs
+
+      env = fromMaybe "misc" . listToMaybe . filter (flip elem boxTypes) $ cs
+      (bs', caption) = case splitBoxComponents bs of
+        (bs', Just (Span _ is)) -> (bs', is)
+        (bs', Nothing)          -> (bs', [])
+
+  in  case fmap (merge (env, caption, attr)) $ getCaptionAttr sibling of
+    Just (env, caption, attr) -> (wrap env bs' caption attr, Null)
+    Nothing                   -> (div, sibling)
+
+pairTransform block sibling = case getCaptionAttr sibling of
+  Just (env, caption, attr) -> (wrap env [block] caption attr, Null)
+  Nothing                   -> (block, sibling)
+
 
 
 
 wrapFloat :: Pandoc -> Pandoc
-wrapFloat = pairWalk pairTransform
+wrapFloat = walk (pairWalk pairTransform)
