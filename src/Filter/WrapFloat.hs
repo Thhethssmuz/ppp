@@ -235,35 +235,25 @@ mkProgram cb@(CodeBlock (i,cs,as) code) caption = do
 
 
 
-pairWalk :: (Block -> Block -> (Either Block Block, Block)) -> Pandoc -> Pandoc
-pairWalk f (Pandoc meta bs) = Pandoc meta $ pairWalk' bs
-  where
-    pairWalk' []       = []
-    pairWalk' (x:y:bs) = case f x y of
-                           -- If Right then recursively walk children
-                           (Left  x', Null) -> x' : pairWalk' bs
-                           (Left  x', y'  ) -> x' : pairWalk' (y' : bs)
-                           (Right x', Null) -> (sub x') : pairWalk' bs
-                           (Right x', y'  ) -> (sub x') : pairWalk' (y' : bs)
-    pairWalk' (x:bs)   = case f x Null of
-                           (Left  x', Null) -> x' : pairWalk' bs
-                           (Left  x', y'  ) -> x' : pairWalk' (y' : bs)
-                           (Right x', Null) -> (sub x') : pairWalk' bs
-                           (Right x', y'  ) -> (sub x') : pairWalk' (y' : bs)
+boxTypes =
+  [ "figure"
+  , "table"
+  , "formula"
+  , "program"
+  , "example"
+  ]
 
-    sub (BlockQuote bs)        = BlockQuote $ pairWalk' bs
-    sub (OrderedList a bss)    = OrderedList a $ map pairWalk' bss
-    sub (BulletList bss)       = BulletList $ map pairWalk' bss
-    sub (DefinitionList m)     = DefinitionList
-                               $ map (\(is,bss) -> (is, map pairWalk' bss)) m
-    sub (Table a b c bss bsss) = Table a b c (map pairWalk' bss)
-                               $ map (map pairWalk') bsss
-    sub (Div a bs)             = Div a $ pairWalk' bs
-    sub b                      = b
+pairWalk :: (Block -> Block -> (Block, Block)) -> [Block] -> [Block]
+pairWalk _ []       = []
+pairWalk f [x]      = case f x Null of
+                        (x', Null) -> [x']
+pairWalk f (x:y:bs) = case f x y of
+                        (x', Null) -> pairWalk f (x' : bs)
+                        (x', y'  ) -> x' : pairWalk f (y' : bs)
 
-wrap :: String -> Block -> [Inline] -> Attr -> Block
-wrap t b [] (i,cs,as) = Div (i,"box":t:cs,as) [b]
-wrap t b is (i,cs,as) = Div (i,"box":t:cs,as) [b, c]
+wrap :: String -> [Block] -> [Inline] -> Attr -> Block
+wrap t bs [] (i,cs,as) = Div (i,"box":t:cs,as) bs
+wrap t bs is (i,cs,as) = Div (i,"box":t:cs,as) (bs++[c])
   where c = Plain [Span ([],["caption"],[]) is]
 
 pairTransform :: Block -> Block -> (Either Block Block, Block)
