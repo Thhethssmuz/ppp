@@ -138,6 +138,31 @@ splitBoxComponents = foldr f ([], Nothing)
     span (Para  [x]) = x
 
 
+mkLongCaption :: String -> Bool -> String -> String -> [Inline] -> BlockWriter
+mkLongCaption env numb style i [] = return ()
+mkLongCaption env numb style i caption = do
+  when (style /= "plain") $ do
+    tex $ "\\floatstyle{" ++ style ++ "}"
+    tex $ "\\restylefloat{" ++ env ++ "}"
+
+  tex $ "\\vspace{-\\intextsep}"
+  tex $ "\\begin{" ++ env ++ (if numb then "" else "*") ++ "}[H]"
+
+  tex $ "\\caption" ++ (if numb then "" else "*") ++ "{"
+  inlines caption
+  tex "}"
+
+  unless (null i) $ do
+    tex $ "\\label{" ++ i ++ "}"
+
+  tex $ "\\end{" ++ env ++ (if numb then "" else "*") ++ "}"
+  tex $ "\\vspace{-\\intextsep}"
+
+  when (style /= "plain") $ do
+    tex $ "\\floatstyle{plain}"
+    tex $ "\\restylefloat{" ++ env ++ "}"
+
+
 tableColumnAlignX =
   [ (AlignLeft, ("l", "\\raggedright"))
   , (AlignCenter, ("c", "\\centering"))
@@ -178,8 +203,9 @@ mkTable (Table caption al ws head rows) (i,cs,as) = do
       long    = elem "long" cs
 
       style   = fromMaybe "plain" $ lookup "style" as
+      styleT  = elem style ["plaintop", "ruled"]
+      styleB  = not styleT
       numb    = not (null caption) && "unnumbered" `notElem` cs
-      env     = if long && numb then "longtable" else "longtable*"
 
       norm    = elem "normalize" cs || elem "normalise" cs
       tstyle  = fromMaybe "plain" $ lookup "table-style" as
@@ -194,15 +220,9 @@ mkTable (Table caption al ws head rows) (i,cs,as) = do
                            return xs
 
   when (long && span) . tex $ "\\end{pppmulticol}"
-  when (long) . tex $ "\\vspace{\\intextsep}"
-  tex $ "\\begin{" ++ env ++ "}{@{}" ++ align ++ "@{}}"
-
-  when (long && not (null caption) && style == "plaintop") $ do
-    tex $ "\\caption" ++ (if numb then "" else "*") ++ "{"
-    inlines caption
-    tex $ "}\\\\"
-  when (long && not (null i) && style == "plaintop") $ do
-    tex $ "\\label{" ++ i ++ "}"
+  when long . tex $ "\\vspace{\\intextsep}"
+  when (long && styleT) $ mkLongCaption "table" numb style i caption
+  tex $ "\\begin{longtable*}{@{}" ++ align ++ "@{}}"
 
   unless (tstyle == "none") . tex $ "\\toprule"
 
@@ -221,14 +241,8 @@ mkTable (Table caption al ws head rows) (i,cs,as) = do
 
   unless (tstyle == "none") . tex $ "\\bottomrule"
 
-  when (long && not (null caption) && style /= "plaintop") $ do
-    tex $ "\\caption" ++ (if numb then "" else "*") ++ "{"
-    inlines caption
-    tex $ "}"
-  when (long && not (null i) && style /= "plaintop") $ do
-    tex $ "\\label{" ++ i ++ "}"
-
-  tex $ "\\end{" ++ env ++ "}"
+  tex $ "\\end{longtable*}"
+  when (long && styleB) $ mkLongCaption "table" numb style i caption
   when (long && span) . tex $ "\\begin{pppmulticol}"
 
 
@@ -238,32 +252,34 @@ mkProgram cb@(CodeBlock (i,cs,as) code) caption = do
   let span    = elem "span" cs
       long    = elem "long" cs
       style   = fromMaybe "plain" $ lookup "style" as
+      styleT  = elem style ["plaintop", "ruled"]
+      styleB  = not styleT
       numb    = not (null caption) && "unnumbered" `notElem` cs
 
   when (long && span) . tex $ "\\end{pppmulticol}"
-  when (long && not span) . tex $ "\\begin{LongVerbatim}\\begin{ShadedLong}"
+  when long . tex $ "\\vspace{\\intextsep}"
+  when (long && not span) . tex $ "\\begin{ShadedLong}"
 
-  when (long && not (null caption) && style /= "plaintop") $ do
-    tex $ "\\captionsetup{type=program}"
+  when (long && not (null caption) && styleT) $ do
+    mkLongCaption "program" numb style i caption
+    -- tex $ "\\vspace{-\\intextsep}"
 
-  when (long && not (null caption) && style == "plaintop") $ do
-    tex $ "\\captionsetup{type=program}"
-    tex $ "\\caption{"
-    inlines caption
-    tex $ "}"
-  when (long && not (null i) && style == "plaintop") $ do
-    tex $ "\\label{" ++ i ++ "}"
+  when long $ do
+    tex $ "\\vspace{-\\parskip}"
+    tex $ "\\begin{ppp-long-verbatim}"
 
+  tex $ "%--trim--%"
   block cb
+  tex $ "%--trim--%"
 
-  when (long && not (null caption) && style /= "plaintop") $ do
-    tex $ "\\caption{"
-    inlines caption
-    tex $ "}"
-  when (long && not (null i) && style /= "plaintop") $ do
-    tex $ "\\label{" ++ i ++ "}"
+  when long $ do
+    tex $ "\\end{ppp-long-verbatim}"
+    -- tex $ "\\vspace{-\\topskip}"
 
-  when (long && not span) . tex $ "\\end{ShadedLong}\\end{LongVerbatim}"
+  when (long && not (null caption) && styleB) $ do
+    mkLongCaption "program" numb style i caption
+
+  when (long && not span) . tex $ "\\end{ShadedLong}"
   when (long && span) . tex $ "\\begin{pppmulticol}"
 
 
