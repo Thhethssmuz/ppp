@@ -345,6 +345,8 @@ pairTransform block sibling = case getCaptionAttr sibling of
 
 
 
+filterNull :: [Block] -> [Block]
+filterNull = filter ((/=) Null)
 
 wrapFloat :: Pandoc -> Pandoc
-wrapFloat = walk (pairWalk pairTransform)
+wrapFloat = walk (pairWalk pairTransform) . walk filterNull
