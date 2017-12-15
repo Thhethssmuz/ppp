@@ -2,17 +2,19 @@ module Filter.WrapFloat (wrapFloat) where
 
 import BlockWriter
 
+import Control.Applicative
 import Control.Monad
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.State.Lazy
 import Control.Monad.Trans.Except
-
 import Data.Char (isSpace)
 import Data.Maybe
+import qualified Data.Map.Lazy as M
 import Data.List (elemIndex, genericLength, intersperse, intercalate, zipWith4)
-import Numeric (showFFloat)
+import Numeric (showFFloat, showIntAtBase)
+import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.Definition
-import Text.Pandoc.Shared (splitBy, stringify)
+import Text.Pandoc.Shared (inlineListToIdentifier, splitBy, stringify)
 import Text.Pandoc.Walk
 
 
@@ -103,19 +105,15 @@ splitCaptionAttr is =
         Left  _    -> (is, nullAttr)
 
 getCaptionAttr :: Block -> Maybe (String, [Inline], Attr)
-getCaptionAttr (Para (Str s : is)) = case takeWhile' (/=':') s of
-  "Figure:"  -> Just ("figure", caption, attr)
-  "Table:"   -> Just ("table", caption, attr)
-  "Formula:" -> Just ("formula", caption, attr)
-  "Program:" -> Just ("program", caption, attr)
-  "Example:" -> Just ("example", caption, attr)
-  ":"        -> Just ("misc", caption, attr)
-  _          -> Nothing
-  where
-    s'                  = drop 1 $ dropWhile (/=':') s
-    (caption, attr)     = splitCaptionAttr . trimInline $ Str s' : is
-    takeWhile' _ []     = []
-    takeWhile' p (x:xs) = x : if p x then takeWhile' p xs else []
+getCaptionAttr (Para (Str s : is)) =
+  let s'                  = takeWhile' (/=':') s
+      isCaption           = not (null s') && last s' == ':'
+      env                 = map (\x -> if x == '\160' then ' ' else x) $ init s'
+      takeWhile' _ []     = []
+      takeWhile' p (x:xs) = x : if p x then takeWhile' p xs else []
+      is'                 = Str (drop 1 $ dropWhile (/=':') s) : is
+      (caption, attr)     = splitCaptionAttr . trimInline $ is
+  in  if isCaption then Just (env, caption, attr) else Nothing
 getCaptionAttr _ = Nothing
 
 merge :: (String, [Inline], Attr) -> (String, [Inline], Attr) -> (String, [Inline], Attr)
@@ -246,7 +244,6 @@ mkTable (Table caption al ws head rows) (i,cs,as) = do
   when (long && span) . tex $ "\\begin{pppmulticol}"
 
 
-
 mkProgram :: Block -> [Inline] -> BlockWriter
 mkProgram cb@(CodeBlock (i,cs,as) code) caption = do
   let span    = elem "span" cs
@@ -283,40 +280,52 @@ mkProgram cb@(CodeBlock (i,cs,as) code) caption = do
   when (long && span) . tex $ "\\begin{pppmulticol}"
 
 
+type BoxS = State (M.Map String String)
 
-boxTypes =
-  [ "figure"
-  , "table"
-  , "formula"
-  , "program"
-  , "example"
-  ]
+mkId :: String -> BoxS String
+mkId ""       = return "misc"
+mkId "Figure" = return "figure"
+mkId "Table"  = return "table"
+mkId p = do
+  l <- gets M.size
+  let i = "ppp-gen-float-" ++ showIntAtBase 26 (toEnum . (+97)) l ""
+  modify $ M.insert i p
+  return i
 
-pairWalk :: (Block -> Block -> (Block, Block)) -> [Block] -> [Block]
-pairWalk _ []       = []
-pairWalk f [x]      = case f x Null of
-                        (x', Null) -> [x']
-pairWalk f (x:y:bs) = case f x y of
-                        (x', Null) -> pairWalk f (x' : bs)
-                        (x', y'  ) -> x' : pairWalk f (y' : bs)
+
+pairWalkM :: Monad m => (Block -> Block -> m (Block, Block)) -> [Block] -> m [Block]
+pairWalkM _ []       = return []
+pairWalkM f [x]      = do
+                       pair <- f x Null
+                       case pair of
+                        (x', Null) -> return [x']
+pairWalkM f (x:y:bs) = do
+                       pair <- f x y
+                       case pair of
+                        (x', Null) -> fmap (x':) $ pairWalkM f bs
+                        (x', y'  ) -> fmap (x':) $ pairWalkM f (y' : bs)
 
 wrap :: String -> [Block] -> [Inline] -> Attr -> Block
-wrap t bs [] (i,cs,as) = Div (i,"box":t:cs,as) bs
-wrap t bs is (i,cs,as) = Div (i,"box":t:cs,as) (bs++[c])
+wrap env bs [] (i,cs,as) = Div (i,"box":cs,("box-group", env):as) bs
+wrap env bs is (i,cs,as) = Div (i,"box":cs,("box-group", env):as) (bs++[c])
   where c = Plain [Span ([],["caption"],[]) is]
 
-pairTransform :: Block -> Block -> (Block, Block)
-pairTransform (Para [Image attr caption (url, _)]) sibling =
-  let env = "figure"
+pairTransform :: Block -> Block -> BoxS (Block, Block)
+pairTransform (Para [Image attr caption (url, _)]) sibling = do
+  let env = ""
       fig = RawBlock (Format "tex")
           $ "\\includegraphics[width=\\linewidth]{" ++ url ++ "}"
 
-  in  case fmap (merge (env, caption, attr)) $ getCaptionAttr sibling of
-    Just (env, caption, attr) -> (wrap env [fig] caption attr, Null)
-    Nothing                   -> (wrap env [fig] caption attr, sibling)
+  case merge (env, caption, attr) <$> getCaptionAttr sibling of
+    Just (env, caption, attr) -> do
+                                 i <- mkId env
+                                 return (wrap i [fig] caption attr, Null)
+    Nothing                   -> do
+                                 i <- mkId env
+                                 return (wrap i [fig] caption attr, sibling)
 
-pairTransform (Table caption al ws bss bsss) sibling =
-  let env    = "table"
+pairTransform (Table caption al ws bss bsss) sibling = do
+  let env    = ""
       attr   = nullAttr
 
       render env caption attr@(_,cs,_) =
@@ -325,12 +334,16 @@ pairTransform (Table caption al ws bss bsss) sibling =
             rndrd = Div nullAttr $ runBlockWriter (mkTable table attr) []
         in  if long then rndrd else wrap env [rndrd] caption attr
 
-  in  case fmap (merge (env, caption, attr)) $ getCaptionAttr sibling of
-    Just (env, caption, attr) -> (render env caption attr, Null)
-    Nothing                   -> (render env caption attr, sibling)
+  case merge (env, caption, attr) <$> getCaptionAttr sibling of
+    Just (env, caption, attr) -> do
+                                 i <- mkId env
+                                 return (render i caption attr, Null)
+    Nothing                   -> do
+                                 i <- mkId env
+                                 return (render i caption attr, sibling)
 
-pairTransform (CodeBlock attr code) sibling =
-  let env     = "program"
+pairTransform (CodeBlock attr code) sibling = do
+  let env     = ""
       caption = []
 
       render env caption attr@(_,cs,_) =
@@ -339,25 +352,29 @@ pairTransform (CodeBlock attr code) sibling =
             rndrd = Div nullAttr $ runBlockWriter (mkProgram prog caption) []
         in  if long then rndrd else wrap env [rndrd] caption attr
 
-  in  case fmap (merge (env, caption, attr)) $ getCaptionAttr sibling of
-    Just (env, caption, attr) -> (render env caption attr, Null)
-    Nothing                   -> (render env caption attr, sibling)
+  case merge (env, caption, attr) <$> getCaptionAttr sibling of
+    Just (env, caption, attr) -> do
+                                 i <- mkId env
+                                 return (render env caption attr, Null)
+    Nothing                   -> do
+                                 i <- mkId env
+                                 return (render env caption attr, sibling)
 
-pairTransform div@(Div attr@(_,cs,_) bs) sibling =
+pairTransform div@(Div attr@(_,cs,as) bs) sibling = do
   let box = elem "box" cs
 
-      env = fromMaybe "misc" . listToMaybe . filter (flip elem boxTypes) $ cs
+      env = fromMaybe "" . lookup "box-group" $ as
       (bs', caption) = case splitBoxComponents bs of
         (bs', Just (Span _ is)) -> (bs', is)
         (bs', Nothing)          -> (bs', [])
 
-  in  case fmap (merge (env, caption, attr)) $ getCaptionAttr sibling of
-    Just (env, caption, attr) -> (wrap env bs' caption attr, Null)
-    Nothing                   -> (div, sibling)
+  case guard box >> merge (env, caption, attr) <$> getCaptionAttr sibling of
+    Just (env, caption, attr) -> do
+                                 i <- mkId env
+                                 return (wrap i bs' caption attr, Null)
+    Nothing                   -> return (div, sibling)
 
-pairTransform block sibling = case getCaptionAttr sibling of
-  Just (env, caption, attr) -> (wrap env [block] caption attr, Null)
-  Nothing                   -> (block, sibling)
+pairTransform block sibling = return (block, sibling)
 
 
 
@@ -365,4 +382,13 @@ filterNull :: [Block] -> [Block]
 filterNull = filter ((/=) Null)
 
 wrapFloat :: Pandoc -> Pandoc
-wrapFloat = walk (pairWalk pairTransform) . walk filterNull
+wrapFloat doc =
+  let (doc', groups) = flip runState M.empty
+                     . walkM (pairWalkM pairTransform)
+                     . walk filterNull $ doc
+  in  ( setMeta "boxGroup" `flip` doc' )
+      . MetaList
+      . map (MetaMap . M.fromList)
+      . map (\(k,v) -> [("id", MetaString k),("name", MetaString v)])
+      . M.toList
+      $ groups

@@ -21,14 +21,6 @@ parseWidth x = case reads x of
   [(f, "%")] -> Just $ f / 100
   _          -> Nothing
 
-boxTypes =
-  [ ("figure",  "fig")
-  , ("table",   "tab")
-  , ("formula", "form")
-  , ("program", "prog")
-  , ("example", "ex")
-  ]
-
 boxAlignX =
   [ ("left", "\\raggedright")
   , ("centre", "\\centering")
@@ -69,7 +61,7 @@ blockWidth _ = Nothing
 
 getEnv :: Block -> String
 getEnv (Div (i,cs,as) bs) =
-  fromMaybe "misc" . listToMaybe . filter (\x -> elem x $ map fst boxTypes) $ cs
+  fromMaybe "misc" . lookup "box-group" $ as
 getEnv _ = "misc"
 
 
