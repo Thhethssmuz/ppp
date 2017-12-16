@@ -28,29 +28,32 @@ groupBlocks
   . lines
 
 processMacro :: String -> IO String
-processMacro block = do
-  let block'  = drop 1 block
-      macro   = map toLower . trim . takeWhile (/= ':') $ block'
-      inner   = fmap (map trim . splitBy (flip elem "\n;") . trim)
-              . (\xs -> if null xs then Nothing else Just $ tail xs)
-              . dropWhile (/= ':') $ block'
-      raw     = fromMaybe ""
-              . fmap ( (" ppp-raw=\""++) . (++"\"") . intercalate "\n"
-                     . filter (not . null) . map (tail . init . show)
-                     )
-              $ inner
+processMacro macroBlock = do
+  let block  = drop 1 macroBlock
 
-      content = fromMaybe "" . flip fmap inner $ \xs ->
-                  let is = concatMap (("<span class=\"ppp-line\">"++) . (++"\\\n</span>"))
-                         . (\xs -> if null xs then [""] else xs)
-                         . filter (not . null) $ xs
-                      b  = ("<span class=\"ppp-multi\">"++) . (++"\\\n</span>")
-                         . intercalate "\\\n" $ xs
-                  in  is ++ b
+      macro   = map toLower . trim . takeWhile (/= ':') $ block
+      content = (\xs -> if null xs then Nothing else Just . trim $ tail xs)
+              . dropWhile (/= ':') $ block
+
+      lines   = fromMaybe []
+              . fmap (map trim . splitBy (flip elem "\n;"))
+              $ content
+
+      cs      = ["ppp-macro"]
+      as      = [("macro", macro)] ++
+                zipWith (\l i -> ("l" ++ show i, l)) lines [0..]
+
+      attr    = "{" ++
+                (intercalate " " $ map (('.':)) cs) ++ " " ++
+                (intercalate " " $ map (\(k,v) -> k ++ "=" ++ show v) as) ++
+                "}"
+      inner   = concat
+              . zipWith (\l i -> "\n[" ++ l ++ "]{.line}") lines
+              $ [0..]
 
   if macro == "include"
-    then fmap (concatMap ("\n\n" ++)) . mapM (include . trim) . fromMaybe [] $ inner
-    else return $ "\n\n<div ppp=" ++ (show macro) ++ raw ++ ">" ++ content ++ "</div>\n\n"
+    then fmap ((++"\n\n") . concatMap ("\n\n"++)) . mapM include $ lines
+    else return $ "\n\n:::" ++ attr ++ inner ++ "\n:::\n\n"
 
 processMacros :: [String] -> IO String
 processMacros [] = return ""
