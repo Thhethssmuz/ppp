@@ -31,7 +31,7 @@ processMacro :: String -> IO String
 processMacro macroBlock = do
   let block  = drop 1 macroBlock
 
-      macro   = map toLower . trim . takeWhile (/= ':') $ block
+      macro   = trim . takeWhile (/= ':') $ block
       content = (\xs -> if null xs then Nothing else Just . trim $ tail xs)
               . dropWhile (/= ':') $ block
 
@@ -51,7 +51,7 @@ processMacro macroBlock = do
               . zipWith (\l i -> "\n[" ++ l ++ "]{.line}") lines
               $ [0..]
 
-  if macro == "include"
+  if map toLower macro == "include"
     then fmap ((++"\n\n") . concatMap ("\n\n"++)) . mapM include $ lines
     else return $ "\n\n:::" ++ attr ++ inner ++ "\n:::\n\n"
 
