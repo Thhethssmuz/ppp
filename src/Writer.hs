@@ -10,7 +10,7 @@ import Skylighting.Styles (tango)
 import System.Exit (exitFailure)
 import System.IO (stderr)
 import Text.Pandoc.Class (runIOorExplode)
-import Text.Pandoc.Definition (Pandoc(..), MetaValue(..), lookupMeta)
+import Text.Pandoc.Definition (Pandoc(..), MetaValue(..), lookupMeta, nullMeta)
 import Text.Pandoc.Options (WriterOptions(..), TopLevelDivision(..), def)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Writers.LaTeX (writeLaTeX)
@@ -34,10 +34,10 @@ extendWriterOptions opts (Pandoc meta _) =
 toTex :: Pandoc -> IO Text
 toTex doc = runIOorExplode $ writeLaTeX (extendWriterOptions writer doc) doc
 
-toPdf :: Pandoc -> IO BS.ByteString
-toPdf doc = do
-  let writer' = extendWriterOptions writer doc
-  pdf <- runIOorExplode $ makePDF "xelatex" [] writeLaTeX writer' doc
+toPdf :: Text -> IO BS.ByteString
+toPdf tex = do
+  let doc = Pandoc nullMeta []
+  pdf <- runIOorExplode $ makePDF "xelatex" [] (\_ _ -> return tex) writer doc
   case pdf of
     Left err -> do
                 BS.hPutStrLn stderr err
