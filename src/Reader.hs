@@ -9,7 +9,10 @@ import Text.Pandoc.Readers.Markdown (readMarkdown)
 reader :: ReaderOptions
 reader = def
   { readerStandalone = True
-  , readerExtensions = disableExtension Ext_table_captions pandocExtensions
+  , readerExtensions = disableExtension Ext_pandoc_title_block
+                     . disableExtension Ext_yaml_metadata_block
+                     . disableExtension Ext_table_captions
+                     $ pandocExtensions
   }
 
 toPandoc :: String -> IO Pandoc
