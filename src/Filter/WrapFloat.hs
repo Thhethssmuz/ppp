@@ -359,10 +359,10 @@ pairTransform (CodeBlock attr code) sibling = do
   case merge (env, caption, attr) <$> getCaptionAttr sibling of
     Just (env, caption, attr) -> do
                                  i <- mkId env
-                                 return (render env caption attr, Null)
+                                 return (render i caption attr, Null)
     Nothing                   -> do
                                  i <- mkId env
-                                 return (render env caption attr, sibling)
+                                 return (render i caption attr, sibling)
 
 pairTransform div@(Div attr@(_,cs,as) bs) sibling = do
   let box = elem "box" cs
