@@ -40,7 +40,7 @@ processMacro macroBlock = do
               $ content
 
       cs      = ["ppp-macro"]
-      as      = [("macro", macro)] ++
+      as      = [("macro", macro), ("lines", show $ length lines)] ++
                 zipWith (\l i -> ("l" ++ show i, l)) lines [0..]
 
       attr    = "{" ++

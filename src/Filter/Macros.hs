@@ -6,7 +6,7 @@ import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.State
 import qualified Data.Map.Lazy as M
 import Data.Char (toLower, isSpace)
-import Data.Maybe (catMaybes, isJust)
+import Data.Maybe (catMaybes, fromMaybe, isJust)
 import Data.List (intercalate)
 import Text.Pandoc.Builder (ToMetaValue, Many, fromList, setMeta, toMetaValue)
 import Text.Pandoc.Definition
@@ -296,10 +296,9 @@ processMacro pre block@(Div (i,cs,as) bs) = do
       lines _ = []
   case guard (elem "ppp-macro" cs) >> lookup "macro" as of
     Just ('%':_) -> return Null
-    Just key     -> let ls = query lines bs
-                        rs = catMaybes
-                           . map (\i -> lookup ("l" ++ show i) as)
-                           $ [0..length ls]
+    Just key     -> let l  = fromMaybe 0 $ parseInt =<< lookup "lines" as
+                        rs = catMaybes $ map (\i -> lookup ('l' : show i) as) [0..l]
+                        ls = query lines bs
                     in  macro pre block key rs ls
     Nothing      -> return block
 processMacro _ block = return block
