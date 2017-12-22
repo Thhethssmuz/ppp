@@ -8,7 +8,7 @@ import qualified Data.Map.Lazy as M
 import Data.Char (toLower, isSpace)
 import Data.Maybe (catMaybes, fromMaybe, isJust)
 import Data.List (intercalate)
-import Text.Pandoc.Builder (ToMetaValue, Many, fromList, setMeta, toMetaValue)
+import Text.Pandoc.Builder
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared (addMetaField, splitBy)
 import Text.Pandoc.Walk (walkM, query)
@@ -282,7 +282,8 @@ macro pre block m rs ls = case map toLower m of
                          [ tex' "}\n\\begin{pppmulticol}" ]
 
   "linksasnotes"    -> with0 m rs $ setGlobal "links-as-notes" True
-  "includehead"     -> void $ addGlobal "includehead" . multiLine $ ls
+  "includehead"     -> void . addGlobal "includehead" . rawInline "tex"
+                            . intercalate "\n" $ rs
 
   _                 -> if pre
                          then return block
