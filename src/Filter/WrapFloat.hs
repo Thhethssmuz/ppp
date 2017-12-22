@@ -287,10 +287,14 @@ mkId ""       = return "misc"
 mkId "Figure" = return "figure"
 mkId "Table"  = return "table"
 mkId p = do
-  l <- gets M.size
-  let i = "ppp-gen-float-" ++ showIntAtBase 26 (toEnum . (+97)) l ""
-  modify $ M.insert i p
-  return i
+  existing <- gets $ M.lookup p
+  case existing of
+    Just i  -> return i
+    Nothing -> do
+      l <- gets M.size
+      let i = "ppp-gen-float-" ++ showIntAtBase 26 (toEnum . (+97)) l ""
+      modify $ M.insert p i
+      return i
 
 
 pairWalkM :: Monad m => (Block -> Block -> m (Block, Block)) -> [Block] -> m [Block]
@@ -389,6 +393,6 @@ wrapFloat doc =
   in  ( setMeta "boxGroup" `flip` doc' )
       . MetaList
       . map (MetaMap . M.fromList)
-      . map (\(k,v) -> [("id", MetaString k),("name", MetaString v)])
+      . map (\(k,v) -> [("id", MetaString v),("name", MetaString k)])
       . M.toList
       $ groups
