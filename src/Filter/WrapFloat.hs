@@ -195,8 +195,8 @@ mkRow al ws columns = do
   sequence_ . intersperse (tex "&") $ zipWith4 mkColumn al ws columns fl
   tex "\\tabularnewline"
 
-mkTable :: Block -> Attr -> BlockWriter
-mkTable (Table caption al ws head rows) (i,cs,as) = do
+mkTable :: String -> Block -> Attr -> BlockWriter
+mkTable env (Table caption al ws head rows) (i,cs,as) = do
   let span    = elem "span" cs
       long    = elem "long" cs
 
@@ -219,7 +219,7 @@ mkTable (Table caption al ws head rows) (i,cs,as) = do
 
   when (long && span) . tex $ "\\end{pppmulticol}"
   when long . tex $ "\\vspace{\\intextsep}"
-  when (long && styleT) $ mkLongCaption "table" numb style i caption
+  when (long && styleT) $ mkLongCaption env numb style i caption
   tex $ "\\begin{longtable*}{@{}" ++ align ++ "@{}}"
 
   unless (tstyle == "none") . tex $ "\\toprule"
@@ -240,12 +240,12 @@ mkTable (Table caption al ws head rows) (i,cs,as) = do
   unless (tstyle == "none") . tex $ "\\bottomrule"
 
   tex $ "\\end{longtable*}"
-  when (long && styleB) $ mkLongCaption "table" numb style i caption
+  when (long && styleB) $ mkLongCaption env numb style i caption
   when (long && span) . tex $ "\\begin{pppmulticol}"
 
 
-mkProgram :: Block -> [Inline] -> BlockWriter
-mkProgram cb@(CodeBlock (i,cs,as) code) caption = do
+mkProgram :: String -> Block -> [Inline] -> BlockWriter
+mkProgram env cb@(CodeBlock (i,cs,as) code) caption = do
   let span    = elem "span" cs
       long    = elem "long" cs
       style   = fromMaybe "plain" $ lookup "style" as
@@ -258,7 +258,7 @@ mkProgram cb@(CodeBlock (i,cs,as) code) caption = do
   when (long && not span) . tex $ "\\begin{ShadedLong}"
 
   when (long && not (null caption) && styleT) $ do
-    mkLongCaption "program" numb style i caption
+    mkLongCaption env numb style i caption
     -- tex $ "\\vspace{-\\intextsep}"
 
   when long $ do
@@ -274,7 +274,7 @@ mkProgram cb@(CodeBlock (i,cs,as) code) caption = do
     -- tex $ "\\vspace{-\\topskip}"
 
   when (long && not (null caption) && styleB) $ do
-    mkLongCaption "program" numb style i caption
+    mkLongCaption env numb style i caption
 
   when (long && not span) . tex $ "\\end{ShadedLong}"
   when (long && span) . tex $ "\\begin{pppmulticol}"
@@ -331,7 +331,7 @@ pairTransform (Table caption al ws bss bsss) sibling = do
       render env caption attr@(_,cs,_) =
         let table = Table caption al ws bss bsss
             long  = elem "long" cs
-            rndrd = Div nullAttr $ runBlockWriter (mkTable table attr) []
+            rndrd = Div nullAttr $ runBlockWriter (mkTable env table attr) []
         in  if long then rndrd else wrap env [rndrd] caption attr
 
   case merge (env, caption, attr) <$> getCaptionAttr sibling of
@@ -349,7 +349,7 @@ pairTransform (CodeBlock attr code) sibling = do
       render env caption attr@(_,cs,_) =
         let prog  = CodeBlock attr code
             long  = elem "long" cs
-            rndrd = Div nullAttr $ runBlockWriter (mkProgram prog caption) []
+            rndrd = Div nullAttr $ runBlockWriter (mkProgram env prog caption) []
         in  if long then rndrd else wrap env [rndrd] caption attr
 
   case merge (env, caption, attr) <$> getCaptionAttr sibling of
