@@ -235,11 +235,17 @@ macro pre block m rs ls = case map toLower m of
 
   "chapterprefix"   -> let b = if length rs > 0 then "true" else "false"
                        in  return . Plain $
+                         [ tex' $ "\\end{pppmulticol}\n"] ++
                          [ tex' $ "\\pppchapterprefix{" ++ b ++ "}{" ] ++
                          intercalate [LineBreak] ls ++
-                         [ tex' $ "}" ]
-  "tocdepth"        -> with1 m rs $ \r -> return . tex $ "\\tocdepth{" ++ r ++ "}"
-  "numdepth"        -> with1 m rs $ \r -> return . tex $ "\\numdepth{" ++ r ++ "}"
+                         [ tex' $ "}\n" ] ++
+                         [ tex' $ "\\begin{pppmulticol}" ]
+  "tocdepth"        -> with [0,1] m rs $ \_ -> case rs of
+                         []  -> return . tex $ "\\tocdepth{0}"
+                         [r] -> return . tex $ "\\tocdepth{" ++ r ++ "}"
+  "numdepth"        -> with [0,1] m rs $ \_ -> case rs of
+                         []  -> return . tex $ "\\numdepth{0}"
+                         [r] -> return . tex $ "\\numdepth{" ++ r ++ "}"
   "numstyle"        -> let f r = "\\end{pppmulticol}\n" ++
                                  "\\numstyle{\\" ++ r ++ "}{" ++ r ++ "}\n" ++
                                  "\\begin{pppmulticol}"
@@ -253,30 +259,44 @@ macro pre block m rs ls = case map toLower m of
                            "roman"        -> "Roman"
                            "rom"          -> "Roman"
                            _              -> fail ""
-  "bmkdepth"        -> with1 m rs $ \r -> return . tex $ "\\bmkdepth{" ++ r ++ "}"
+  "bmkdepth"        -> with [0,1] m rs $ \_ -> case rs of
+                         []  -> return . tex $ "\\bmkdepth{0}"
+                         [r] -> return . tex $ "\\bmkdepth{" ++ r ++ "}"
   "bmkreset"        -> with0 m rs . return . tex $ "\\bmkreset{}"
 
-  "frontmatter"     -> with0 m rs $ do
-                         a <- macro pre Null "numdepth" [] []
-                         b <- macro pre Null "tocdepth" [] []
-                         c <- macro pre Null "numstyle" ["numeric"] []
-                         return $ Div nullAttr [a,b,c]
-  "mainmatter"      -> with0 m rs $ do
-                         a <- macro pre Null "numdepth" ["3"] []
-                         b <- macro pre Null "tocdepth" ["3"] []
-                         c <- macro pre Null "numstyle" ["numeric"] []
-                         return $ Div nullAttr [a,b,c]
-  "appendices"      -> with0 m rs $ do
-                         a <- macro pre Null "numdepth" ["3"] []
-                         b <- macro pre Null "tocdepth" ["3"] []
-                         c <- macro pre Null "numstyle" ["alphabetical"] []
-                         return $ Div nullAttr [a,b,c]
-  "backmatter"      -> with0 m rs $ do
-                         a <- macro pre Null "numdepth" [] []
-                         b <- macro pre Null "tocdepth" ["3"] []
-                         c <- macro pre Null "numstyle" ["numeric"] []
-                         d <- macro pre Null "bmkreset" [] []
+  "frontmatter"     -> with [0,1] m rs $ \_ -> do
+                         a <- macro pre Null "NumDepth" ["1"] []
+                         b <- macro pre Null "TocDepth" ["1"] []
+                         c <- macro pre Null "NumStyle" ["Roman"] []
+                         d <- case rs of
+                           []  -> return Null
+                           [r] -> macro pre Null "ChapterPrefix" rs ls
                          return $ Div nullAttr [a,b,c,d]
+  "mainmatter"      -> with [0,1] m rs $ \_ -> do
+                         a <- macro pre Null "NumDepth" ["3"] []
+                         b <- macro pre Null "TocDepth" ["3"] []
+                         c <- macro pre Null "NumStyle" ["Numeric"] []
+                         d <- case rs of
+                           []  -> return Null
+                           [r] -> macro pre Null "ChapterPrefix" rs ls
+                         return $ Div nullAttr [a,b,c,d]
+  "appendices"      -> with [0,1] m rs $ \_ -> do
+                         a <- macro pre Null "NumDepth" ["3"] []
+                         b <- macro pre Null "TocDepth" ["3"] []
+                         c <- macro pre Null "NumStyle" ["Alphabetical"] []
+                         d <- case rs of
+                           []  -> return Null
+                           [r] -> macro pre Null "ChapterPrefix" rs ls
+                         return $ Div nullAttr [a,b,c,d]
+  "backmatter"      -> with [0,1] m rs $ \_ -> do
+                         a <- macro pre Null "NumDepth" [] []
+                         b <- macro pre Null "TocDepth" ["3"] []
+                         c <- macro pre Null "NumStyle" ["Numeric"] []
+                         d <- case rs of
+                           []  -> return Null
+                           [r] -> macro pre Null "ChapterPrefix" rs ls
+                         e <- macro pre Null "BmkReset" [] []
+                         return $ Div nullAttr [a,b,c,d,e]
 
   "part"            -> withMany m rs $ \rs -> return . Plain $
                          [ tex' "\\end{pppmulticol}\n\\part*{" ] ++
