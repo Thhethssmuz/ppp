@@ -111,10 +111,7 @@ mkFloat parent inheritedWidth this@(Div (i,cs,as) bs) = do
     tex $ "\\begin{minipage}[" ++ y ++ "]{" ++ showF width ++ "\\linewidth}"
 
   when (box && wrap) $ do
-    tex $ "\\begin{wrapfloat}{misc}{" ++ w ++ "}{" ++ showF width ++ "\\linewidth}"
-    tex $ "\\vspace{-\\intextsep}"
-    tex $ "\\begingroup"
-    tex $ "\\setlength{\\intextsep}{0pt}"
+    tex $ "\\begin{pppwrapfloat}{misc}{" ++ w ++ "}{" ++ showF width ++ "\\linewidth}"
     -- tex $ "\\cprotect\\fbox{\\begin{minipage}[" ++ y ++ "]{\\linewidth-2\\fboxsep-2\\fboxrule}%"
     tex $ "\\begin{minipage}[" ++ y ++ "]{\\linewidth}"
 
@@ -167,6 +164,9 @@ mkFloat parent inheritedWidth this@(Div (i,cs,as) bs) = do
   unless (null i) $ do
     tex $ "\\label{" ++ i ++ "}"
 
+  when (isNothing parent && not wrap) $ do
+    tex $ "\\vspace{-\\intextsep}"
+
   when (box && Just env /= penv) $ do
     tex $ "\\end{" ++ env' ++ "}"
 
@@ -177,12 +177,7 @@ mkFloat parent inheritedWidth this@(Div (i,cs,as) bs) = do
   when (box && wrap) $ do
     -- tex $ "\\end{minipage}}"
     tex $ "\\end{minipage}"
-    tex $ "\\endgroup"
-    tex $ "\\vspace{-\\intextsep}"
-    tex $ "\\end{wrapfloat}"
-
-  when (isNothing parent && not wrap) $ do
-    tex $ "\\vspace{-\\intextsep}"
+    tex $ "\\end{pppwrapfloat}"
 
   when (isJust parent) $ do
     -- tex $ "\\end{minipage}}"
