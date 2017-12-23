@@ -141,10 +141,12 @@ macro pre block m rs ls = case map toLower m of
   "fontmath"        -> with1 m rs $ setGlobal "math-font" . MetaString
 
   "header"          -> let f xs y    = [tex' $ "\\" ++ y ++ "head[]{"] ++ xs ++ [tex' "}"]
-                           g xs ys b = return . Plain . (++) (sep b) . concat . zipWith f xs $ ys
+                           g xs ys b = return . Plain . mc . (++) (sep b) . concat . zipWith f xs $ ys
                            sep b     = [tex' $ "\\setheadsepline" ++ if b then "[text]{.4pt}" else "[0mm]{0mm}"]
                            h1 xs     = g xs ["o","c","i"]
                            h2 xs     = g xs ["le","ce","re","lo","co","ro"]
+                           mc xs     = [tex' "\\end{pppmulticol}"] ++ xs ++
+                                       [tex' "\\begin{pppmulticol}"]
                            n         = []
                            dmy x     = if x == [Str "-"] then n else x
                        in  with [0,1,2,3,4,6] m rs $ \_ -> case map dmy ls of
@@ -155,9 +157,11 @@ macro pre block m rs ls = case map toLower m of
                          [c]                 -> h1 [n,c,n] True
                          []                  -> h1 [n,n,n] False
   "footer"          -> let f xs y  = [tex' $ "\\" ++ y ++ "foot["] ++ xs ++ [tex' "]{"] ++ xs ++ [tex' "}"]
-                           g xs ys = return . Plain . concat . zipWith f xs $ ys
+                           g xs ys = return . Plain . mc . concat . zipWith f xs $ ys
                            h1 xs   = g xs ["o","c","i"]
                            h2 xs   = g xs ["le","ce","re","lo","co","ro"]
+                           mc xs     = [tex' "\\end{pppmulticol}"] ++ xs ++
+                                       [tex' "\\begin{pppmulticol}"]
                            n       = []
                            dmy x     = if x == [Str "-"] then n else x
                        in  with [0,1,2,3,4,6] m rs $ \_ -> case map dmy ls of
