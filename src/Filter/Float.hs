@@ -125,6 +125,13 @@ mkFloat parent inheritedWidth this@(Div (i,cs,as) bs) = do
   unless (null x) $ do
     tex $ x
 
+  when (isJust caption && style == "plaintop") $ do
+    tex $ "\\" ++ cenv ++ "{"
+    inline $ fromJust caption
+    tex "}"
+    unless (null i) $ do
+      tex $ "\\label{" ++ i ++ "}"
+
   when (isNothing parent) $ do
     -- tex $ "\\cprotect\\fbox{\\begin{minipage}[" ++ y ++ "]{" ++ showF width' ++ "\\linewidth-2\\fboxsep-2\\fboxrule}%"
     tex $ "\\begin{minipage}[" ++ y ++ "]{" ++ showF width' ++ "\\linewidth}"
@@ -156,13 +163,12 @@ mkFloat parent inheritedWidth this@(Div (i,cs,as) bs) = do
     -- tex $ "\\end{minipage}}"
     tex $ "\\end{minipage}"
 
-  when (isJust caption) $ do
+  when (isJust caption && style /= "plaintop") $ do
     tex $ "\\" ++ cenv ++ "{"
     inline $ fromJust caption
     tex "}"
-
-  unless (null i) $ do
-    tex $ "\\label{" ++ i ++ "}"
+    unless (null i) $ do
+      tex $ "\\label{" ++ i ++ "}"
 
   when (isNothing parent && not wrap) $ do
     tex $ "\\vspace{-\\intextsep}"
