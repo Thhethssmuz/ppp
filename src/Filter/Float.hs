@@ -75,7 +75,7 @@ mkFloat parent inheritedWidth this@(Div (i,cs,as) bs) = do
       (children, caption) = if box then splitBoxComponents bs else (bs, Nothing)
 
       env   = getEnv this
-      env'  = env ++ if float && span then "*" else ""
+      env'  = env ++ if float then "*" else ""
       penv  = fmap getEnv parent
 
       dw    = if wrap then 0.5 else 1
