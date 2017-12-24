@@ -55,11 +55,18 @@ replaceBibMarkers (RawInline (Format "html") "</pppref>") = tex' "]"
 replaceBibMarkers x = x
 
 wrapBibliography :: Block -> Block
-wrapBibliography (Div ("refs",_,_) bs) = Div ("",["references"],[]) $
-  [tex "\\begin{itemize}"] ++
-  walk catDivs bs ++
-  [tex "\\end{itemize}"]
+wrapBibliography (Div ("refs",_,_) bs)
+  | countRefs bs == 0 = Null
+  | otherwise         = Div ("",["references"],[]) $
+                          [tex "\\begin{itemize}"] ++
+                          walk catDivs bs ++
+                          [tex "\\end{itemize}"]
 wrapBibliography x = x
+
+countRefs :: [Block] -> Int
+countRefs [] = 0
+countRefs ((Div ('r':'e':'f':'-':_,_,_) _):xs) = 1 + countRefs xs
+countRefs (x:xs) = countRefs xs
 
 catDivs :: [Block] -> [Block]
 catDivs ((Div _ bs):xs) = bs ++ catDivs xs
