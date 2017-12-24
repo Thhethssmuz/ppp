@@ -113,15 +113,15 @@ macro pre block m rs ls = case map toLower m of
                          _           -> fail ""
   "pagecolumns"     -> with [1,2,3] m (concatMap (splitBy isSpace) rs) $ \rs' -> do
                          let [c] = filter (isJust . parseInt) $ rs'
-                             bs  = filter (`elem` ["balanced", "unbalanced"]) rs
+                             bs  = filter ( flip elem ["balanced", "unbalanced"]
+                                          . map toLower
+                                          ) rs'
                              as  = filter (`notElem` (c:bs)) rs'
                          guard $ length bs <= 1
                          guard $ length as <= 1
                          return . tex $
-                           "\\ifnum\\pppcoldepth=" ++ c ++ "\n" ++
-                           "\\else\n" ++
-                           "  \\end{pppmulticol}\n" ++
-                           "  \\def\\pppcoldepth{" ++ c ++ "}\n" ++
+                           "\\end{pppmulticol}\n" ++
+                           "\\def\\pppcoldepth{" ++ c ++ "}\n" ++
                            ( case bs of
                                ["balanced"]   -> "  \\pppbalancemulticoltrue\n"
                                ["unbalanced"] -> "  \\pppbalancemulticolfalse\n"
@@ -129,8 +129,7 @@ macro pre block m rs ls = case map toLower m of
                            ( case as of
                                [a] -> "  \\setlength\\columnsep{" ++ a ++ "}\n"
                                _   -> "" ) ++
-                           "  \\begin{pppmulticol}\n" ++
-                           "\\fi"
+                           "\\begin{pppmulticol}"
   "pagediv"         -> with1 m rs $ setGlobal "page-div" . MetaString
   "pagebcor"        -> with1 m rs $ setGlobal "page-bcor" . MetaString
 
