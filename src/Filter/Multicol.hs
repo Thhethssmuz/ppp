@@ -7,7 +7,11 @@ tex :: String -> Block
 tex = RawBlock (Format "tex")
 
 wrap :: Block -> Block
-wrap b = Div ("",[],[]) [ tex $ "\\end{pppmulticol}", b, tex $ "\\begin{pppmulticol}" ]
+wrap b = Div ("",[],[])
+  [ tex $ "%--trim--%\n\\end{pppmulticol}"
+  , b
+  , tex $ "\\begin{pppmulticol}\n%--trim--%"
+  ]
 
 columnize :: Bool -> Block -> Block
 columnize False b@(Header 1 _ _) = wrap b
