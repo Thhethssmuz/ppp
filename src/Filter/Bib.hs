@@ -27,6 +27,7 @@ fromMetaString (Just (MetaString x)) = Just x
 fromMetaString _ = Nothing
 
 fromMetaList :: Maybe MetaValue -> [String]
+fromMetaList (Just (MetaString x)) = [x]
 fromMetaList (Just (MetaList xs)) = catMaybes . map (fromMetaString . Just) $ xs
 fromMetaList _ = []
 
@@ -54,20 +55,26 @@ replaceBibMarkers (RawInline (Format "html") "</pppref>") = tex' "]"
 replaceBibMarkers x = x
 
 wrapBibliography :: Block -> Block
-wrapBibliography (Div ("refs",_,_) bs) =
-  Div ("",["references"],[]) $ [tex "\\begin{itemize}"] ++ bs ++ [tex "\\end{itemize}"]
+wrapBibliography (Div ("refs",_,_) bs) = Div ("",["references"],[]) $
+  [tex "\\begin{itemize}"] ++
+  walk catDivs bs ++
+  [tex "\\end{itemize}"]
 wrapBibliography x = x
 
+catDivs :: [Block] -> [Block]
+catDivs ((Div _ bs):xs) = bs ++ catDivs xs
+catDivs (x:xs) = x : catDivs xs
+catDivs [] = []
 
 bibliography' :: Pandoc -> IO Pandoc
 bibliography' doc = do
   style     <- case fromMetaString $ lookupMeta' "csl" doc of
-                    Nothing -> return
-                             . CSL.parseCSL'
-                             . LBS.fromStrict
-                             . fromJust
-                             . lookup "ieee.csl" $ emb
-                    Just fp -> fmap CSL.parseCSL' . LBS.readFile $ fp
+                 Nothing -> return
+                          . CSL.parseCSL'
+                          . LBS.fromStrict
+                          . fromJust
+                          . lookup "ieee.csl" $ emb
+                 Just fp -> fmap CSL.parseCSL' . LBS.readFile $ fp
 
   let flush  = secondFieldAlignFlush style
       style' = if flush then hackFlush style else style
