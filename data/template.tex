@@ -1,0 +1,385 @@
+% ------------------------------ D O C U M E N T ------------------------------
+\RequirePackage[hyphens]{url}
+
+\documentclass[]{$documentclass$}
+
+% page size and layout
+\KOMAoptions{%
+  paper=$if(page-size)$$page-size$$else$a4$endif$,
+  pagesize=auto,
+  twoside=$if(page-twoside)$true$else$false$endif$,
+  twocolumn=false,
+  DIV=$if(page-div)$$page-div$$else$10$endif$,
+  BCOR=$if(page-bcor)$$page-bcor$$else$0mm$endif$
+}
+
+% --------------------------------- F O N T S ---------------------------------
+\KOMAoptions{fontsize=$if(font-size)$$font-size$$else$12pt$endif$}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{fixltx2e}
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\usepackage{mathspec}% imports fontspec
+\usepackage{xltxtra,xunicode}
+\defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+$if(euro)$\usepackage{eurosym}$endif$
+$if(main-font)$\setmainfont{$main-font$}$endif$
+$if(sans-font)$\setsansfont{$sans-font$}$endif$
+$if(mono-font)$\setmonofont{$mono-font$}$endif$
+$if(math-font)$\setmathfont{$math-font$}$endif$
+\usepackage{pifont}
+
+% --------------------- H E A D E R   A N D   F O O T E R ---------------------
+\usepackage{lastpage}
+\newcommand\lastpagemark{\pageref{LastPage}}
+\usepackage[nouppercase,headsepline]{scrpage2}
+\pagestyle{scrheadings}
+
+\setheadsepline[0mm]{0mm}
+
+% header and footer font styles
+\setkomafont{pagehead}{}
+\setkomafont{pagefoot}{}
+\setkomafont{pagenumber}{}
+
+$if(article)$
+\automark[subsection]{section}
+$else$
+\automark[section]{chapter}
+$endif$
+
+\clearscrheadfoot
+$if(page-twoside)$
+\ofoot[\itshape \pagemark]{\itshape \pagemark}
+$else$
+\cfoot[\itshape \pagemark]{\itshape \pagemark}
+$endif$
+
+% ---------------------------------- M I S C ----------------------------------
+\usepackage{listings}
+\usepackage{longtable,booktabs}
+\usepackage{lipsum}
+\usepackage{fp}
+\usepackage{calc}
+\usepackage{xparse}
+\usepackage{hyperref}
+\usepackage{bookmark}
+\usepackage[normalem]{ulem}
+\usepackage{enumitem}
+
+% set default style of description lists
+\setlist[description]{style=nextline}
+
+% ---------------------------- P A R A G R A P H S ----------------------------
+%\setlength{\parindent}{0pt}
+%\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}
+
+\KOMAoptions{parskip=half}
+
+% ---------------------------- S E C T I O N I N G ----------------------------
+$if(article)$$else$$if(page-twoside)$
+\KOMAoptions{headings=$if(book)$openleft$else$openany$endif$}
+$endif$$endif$
+
+% inline section number function
+\newcommand\numdepth[1]{%
+  \FPeval{\result}{clip(#1$if(article)$$else$ - 1$endif$)}
+  \setcounter{secnumdepth}{\result}
+}
+
+% default numdepth
+\numdepth{0}
+
+% let each numbering style have its own counter
+\def\currentnumstyle{arabic}
+$if(article)$
+\newcounter{sectionarabic}
+\newcounter{sectionAlph}
+\newcounter{sectionRoman}
+$else$
+\newcounter{chapterarabic}
+\newcounter{chapterAlph}
+\newcounter{chapterRoman}
+$endif$
+
+% inline section numbering style function
+\newcommand\numstyle[2]{%
+$if(article)$
+  \setcounter{section\currentnumstyle}{\value{section}}
+  \def\currentnumstyle{#2}
+  \setcounter{section}{\value{section#2}}
+  \renewcommand*{\theHsection}{#2.\the\value{section}}
+  \renewcommand*{\thesection}{#1{section}}
+$else$
+  \setcounter{chapter\currentnumstyle}{\value{chapter}}
+  \def\currentnumstyle{#2}
+  \setcounter{chapter}{\value{chapter#2}}
+  \renewcommand*{\theHchapter}{#2.\the\value{chapter}}
+  \renewcommand*{\thechapter}{#1{chapter}}
+$endif$
+}
+
+\newcommand\pppchapterprefix[2]{%
+$if(article)$$else$
+  \KOMAoptions{chapterprefix=#1}
+  \renewcommand*{\chaptername}{#2}
+$endif$
+}
+
+% --------------------------------- L I N K S ---------------------------------
+\hypersetup{%
+  setpagesize=false,
+  unicode=false,
+  xetex
+}
+
+\hypersetup{%
+  breaklinks=true,
+  colorlinks=true,
+  urlcolor=blue,
+  linkcolor=black,
+  pdfborder={0 0 0}
+}
+
+\hypersetup{%
+  bookmarks=true,
+  bookmarksdepth=$if(article)$3$else$2$endif$,
+  bookmarksopen=true,
+  bookmarksopenlevel=0
+}
+
+\newcommand\bmkdepth[1]{%
+  \FPeval{\result}{clip(#1$if(article)$$else$ - 1$endif$)}
+  \hypersetup{bookmarksdepth=\result}
+}
+
+\newcommand\bmkreset{%
+  \bookmarksetup{startatroot}
+}
+
+% -------------------------------- B L O C K S --------------------------------
+\usepackage{multicol}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage[within=$if(article)$section$else$chapter$endif$]{newfloat}
+\usepackage{wrapfig}
+\usepackage[skip=0pt]{caption}
+\usepackage[skip=0pt]{subcaption}
+\usepackage{dblfloatfix}
+%\usepackage{etoolbox}
+
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setlength\LTpre{0pt}
+\setlength\LTpost{0pt}
+\setlength\abovecaptionskip{0pt}
+\setlength\belowcaptionskip{0pt}
+
+\setcapindent{1em}
+\captionsetup{labelfont={bf,small},margin=1em}
+\captionsetup[subfigure]{skip=0pt,margin=0.5em}
+\captionsetup[subtable]{skip=0pt,margin=0.5em}
+
+\newcommand\pppnewfloat[2]{%
+  \DeclareFloatingEnvironment[
+    listname=,
+    name=#2,
+    placement=tbh,
+    within=$if(article)$section$else$chapter$endif$
+    ]{#1}
+  \captionsetup[sub#1]{skip=0pt,margin=0.5em}
+}
+\pppnewfloat{misc}{}
+$for(boxGroup)$
+\pppnewfloat{$boxGroup.id$}{$boxGroup.name$}
+$endfor$
+
+\newenvironment{pppwrapfloat}[3]{%
+  \wrapfloat{#1}{#2}{#3}%
+  \ifdim\pagetotal=0pt \else\vspace{-\intextsep}\fi%
+  \begingroup%
+  \setlength{\intextsep}{0pt}%
+}{%
+  \endgroup%
+  \vspace{-\intextsep}%
+  \endwrapfloat%
+}
+
+% wrapper for multicols
+\def\pppcoldepth{1}
+\newif\ifpppbalancemulticol
+\pppbalancemulticoltrue
+\newenvironment{pppmulticol}{%
+  \ifnum\pppcoldepth=1
+  \else
+    \ifpppbalancemulticol
+      \begin{multicols}{\pppcoldepth}
+      \begin{unShadedLong}
+    \else
+      \begin{multicols*}{\pppcoldepth}
+      \begin{unShadedLong}
+    \fi
+  \fi
+}{%
+  \ifnum\pppcoldepth=1
+  \else
+    \ifpppbalancemulticol
+      \end{unShadedLong}
+      \end{multicols}
+    \else
+      \end{unShadedLong}
+      \end{multicols*}
+    \fi
+  \fi
+}
+
+\setlength\columnsep{\intextsep}
+
+$if(highlighting-macros)$
+$highlighting-macros$
+$else$
+\usepackage{color}
+\usepackage{fancyvrb}
+\usepackage{framed}
+\newenvironment{Shaded}{}{}
+$endif$
+\newenvironment{unShaded}{\renewenvironment{Shaded}{}{}}{}
+\newenvironment{ShadedLong}{}{}
+\newenvironment{unShadedLong}{%
+\renewenvironment{ShadedLong}{%
+\renewenvironment{Shaded}{}{}}{}}{}
+
+\definecolor{shadecolor}{RGB}{242,242,242}
+\let\savedtexttt\texttt
+\renewcommand{\texttt}[1]{%
+  \colorbox{shadecolor}{\savedtexttt{#1}}%
+}
+
+\newenvironment{ppp-long-verbatim}{%
+  \makeatletter%
+  \setboolean{@minipage}{true}%
+  \makeatother%
+  \setlength\topsep{0pt}%
+  \setlength\partopsep{0pt}%
+}{%
+  \makeatletter%
+  \setboolean{@minipage}{false}%
+  \makeatother%
+}
+
+% ----------- T I T L E   P A G E   A N D   P D F   M E T A D A T A -----------
+\hypersetup{%
+  pdfproducer={ppp (github.com/Thhethssmuz/ppp)},
+  pdfcreator={ppp $ppp-version$},
+  pdfauthor={$for(author)$$author.head$$sep$, $endfor$},
+  pdfsubject={$subject$},
+  pdftitle={$title$},
+  pdfkeywords={$for(keywords)$$keywords$$sep$, $endfor$}
+}
+
+\titlehead{%
+  \makebox[0pt][l]{$title-head-left$}%
+  \makebox[\textwidth][l]{\hfill $title-head-centre$\hfill}%
+  \makebox[0pt][r]{$title-head-right$}%
+}
+\subject{$subject$}
+\title{$title$}
+\subtitle{$subtitle$}
+\author{$for(author)$$author.full$$sep$ \and $endfor$}
+\date{$date$}
+\publishers{$publisher$}
+
+\newcommand\pppmaketitle{%
+  \KOMAoptions{titlepage=$if(article)$false$else$true$endif$}
+  \maketitle
+}
+
+
+\makeatletter
+\if@titlepage
+  \$if(book)$$else$re$endif$newenvironment{abstract}[1][]{%
+    \titlepage
+    \null\vfil
+    \@beginparpenalty\@lowpenalty
+    \ifstrempty{#1}{}{%
+      \begin{center}
+        \sectfont #1
+        \@endparpenalty\@M
+      \end{center}}}
+    {\par\vfil\null\endtitlepage}
+\else
+  \$if(book)$$else$re$endif$newenvironment{abstract}[1][]{%
+    \ifstrempty{#1}{}{%
+      \small
+      \begin{center}%
+        {\sectfont #1\vspace{-.5em}\vspace{\z@}}%
+      \end{center}
+    }%
+    \quote}
+  {\endquote}
+\fi
+\makeatother
+
+% ---------------- T A B L E   O F   C O N T E N T   E T C . . ----------------
+% inline toc depth function
+\newcommand\tocdepth[1]{%
+  \FPeval{\result}{clip(#1$if(article)$$else$ - 1$endif$)}
+  \addtocontents{toc}{\protect\setcounter{tocdepth}{\result}}
+}
+
+% default toc depth, nothing!
+\tocdepth{0}
+
+% remove toc and listof titles
+\makeatletter
+\deftocheading{toc}{}
+\renewcommand\float@listhead[1]{}
+\makeatother
+
+% remove page numbers from part entries
+\addtokomafont{partentrypagenumber}{\nullfont}
+
+% --------------------------------- N O T E S ---------------------------------
+\usepackage{fnpct}
+\setfnpct{%
+  dont-mess-around=true,
+  multiple=true
+}
+
+$if(pppnotes)$
+\usepackage{enotez}
+\DeclareInstance{enotez-list}{pppendnotes}{paragraph}{%
+  format=\leftskip2.6em,
+  heading=,
+  notes-sep=-0.25\baselineskip,
+  number=\makebox[0pt][r]{#1.\ },
+}
+\let\footnote=\endnote
+\newcommand\pppnotes{\printendnotes[pppendnotes]}
+$endif$
+
+% ------------------------------ F I N A L I Z E ------------------------------
+% recalculate page-div after fonts, line lengths, etc. are set
+\KOMAoptions{DIV=current}\recalctypearea
+
+$for(includehead)$
+$includehead$
+$endfor$
+
+% ------------------------------ D O C U M E N T ------------------------------
+\begin{document}
+
+$if(titlepage)$$else$$if(title)$
+\pppmaketitle
+$endif$$endif$
+
+\begin{pppmulticol}
+
+$body$
+
+\end{pppmulticol}
+
+\end{document}
