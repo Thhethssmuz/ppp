@@ -89,9 +89,9 @@ The title page macros define the various parts that make up the title page of th
 
 - `Subtitle <markdown>`: Defines the subtitle of the document.
 
-- `Authors <markdown>...`: Defines the author(s) of the document. The `authors` macro takes a list of inline markdown arguments, one author per line, and may appear multiple times in the document, appending to the list of authors already defined for the document.
+- `Authors <markdown>...`: Defines the author(s) of the document. The `Authors` macro takes a list of inline markdown arguments, one author per line, and may appear multiple times in the document, appending to the list of authors already defined for the document.
 
-- `Author <markdown>...`: Defines the author(s) of the document. The `author` macro takes a list of inline markdown arguments, though unlike the `authors` macro, assumes that each line pertains to the same author. This allows for adding additional information about an author, like for example: title, organization or association. For the purpose of document metadata only the first line is used when listing authors.
+- `Author <markdown>...`: Defines the author(s) of the document. The `Author` macro takes a list of inline markdown arguments, though unlike the `Authors` macro, assumes that each line pertains to the same author. This allows for adding additional information about an author, like for example: title, organization or association. For the purpose of document metadata only the first line is used when listing authors.
 
   **Example**:
   ```
@@ -100,7 +100,7 @@ The title page macros define the various parts that make up the title page of th
             University of Nowheresville
   ```
 
-  The `author` macro may appear multiple times in the document, each time appending to the list of authors already defined for the document.
+  The `Author` macro may appear multiple times in the document, each time appending to the list of authors already defined for the document.
 
 - `Date <markdown>`: Defines the date of the document. The LaTeX function `\today` may be practical here.
 
@@ -126,7 +126,7 @@ The listings macros are all inline macros that places the desired list at the ma
 
 - `Part <markdown>...`: Creates a special level 0 header. These headers will fill the whole page marking a major separation in the document, at least in report and book type documents. In articles these types of headers are typically not used. Since these headers are usually numbered differently than the rest of the document, if at all, these headers are never numbered and must be numbered manually if desired.
 
-- `ChapterPrefix [<markdown>]`: Defines the chapter prefix for level 1 headers in the document. This has no effect if the document is of type `article` as this document form does not define level 1 headers, but rather starts counting from a depth of 2, aka. sections. However, in `report` or `book` type documents this adds a separate header line for each numbered chapter in the document.
+- `ChapterPrefix [<markdown>]`: Defines the chapter prefix for level 1 headers in the document. This has no effect if the document is of type `Article` as this document form does not define level 1 headers, but rather starts counting from a depth of 2, aka. sections. However, in `Report` or `Book` type documents this adds a separate header line for each numbered chapter in the document.
 
   This macro may appear multiple times in the document, each time modifying all the chapters following the macro or until the macro appears again in the document.
 
@@ -136,7 +136,7 @@ The listings macros are all inline macros that places the desired list at the ma
 
 - `NumDepth [<number>]`: Defines the level to which headers are numbered in the document. Defaults to `0` meaning no headers are numbered.
 
-- `NumbStyle <style>`: Defines the numbering style of top-level headers in the document. Style may be either `numeric` (aliases: `num` and `number`), `alphabetic` (aliases: `alpha` and `letter`) or `roman` (aliases: `rom`).
+- `NumbStyle <style>`: Defines the numbering style of top-level headers in the document. Style may be either `Numeric` (aliases: `Num` and `Number`), `Alphabetic` (aliases: `Alpha` and `Letter`) or `Roman` (aliases: `Rom`).
 
 - `BmkDepth <number>`: Defines the depth to which headers are included in the bookmarks of the document. Defaults to `3`.
 
