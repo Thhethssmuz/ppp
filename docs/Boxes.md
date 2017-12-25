@@ -12,9 +12,7 @@ Immediately following a boxed element you may specify a caption for the box. The
 Prefix: Caption content {#id .class attribute="value"}
 ```
 
-The prefix may be any arbitrary word and will be used as the caption prefix for that element.[^1] This prefix also determines the group the box belongs to such that you may generate a `list of` for them by using the `ListOf` macro.
-
-[^1]: The caption prefix identifier must be a single word and may not contain spaces or certain special characters, this to minimise the potential ambiguity between captions and plain paragraphs that just happen to contain a `:`. If you want your prefix to consist of multiple words or contain special characters you may escape them using `\`. Inline markdown in the caption prefix is not supported.
+The prefix may be any arbitrary word and will be used as the caption prefix for that element.<sup id="b1">[1](#f1)</sup> This prefix also determines the group the box belongs to such that you may generate a `list of` for them by using the `ListOf` macro.
 
 ```
 # List of Prefixes
@@ -34,6 +32,8 @@ is equivalent to:
 
 : Caption content {#id .class atribute="value"}
 ```
+
+<sup id="f1">1</sup>: The caption prefix identifier must be a single word and may not contain spaces or certain special characters, this to minimise the potential ambiguity between captions and plain paragraphs that just happen to contain a `:`. If you want your prefix to consist of multiple words or contain special characters you may escape them using `\`. Inline markdown in the caption prefix is not supported. [↩](#b1)
 
 ## Custom Boxes
 
