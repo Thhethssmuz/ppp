@@ -177,7 +177,7 @@ macro pre block m rs ls = case map toLower m of
                          then return . Plain . intercalate [LineBreak] $ ls
                          else return . tex $ "\\end{pppmulticol}\n" ++
                                              "\\pppmaketitle\n" ++
-                                             "\\begin{pppmulticol"
+                                             "\\begin{pppmulticol}"
   "titlehead"       -> let [hl,hc,hr]    = map ("title-head-"++) ["left","centre","right"]
                            f x [Str "-"] = return ()
                            f x y         = setGlobal x $ MetaInlines y
