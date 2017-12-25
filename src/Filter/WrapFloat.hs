@@ -224,9 +224,10 @@ mkTable env (Table caption al ws head rows) (i,cs,as) = do
 
   unless (tstyle == "none") . tex $ "\\toprule"
 
-  mkRow al widths head
+  unless (all null head) $ do
+    mkRow al widths head
+    unless (tstyle == "none") . tex $ "\\midrule"
 
-  unless (tstyle == "none") . tex $ "\\midrule"
   tex $ "\\endfirsthead"
   unless (tstyle == "none") .tex $ "\\toprule"
 
