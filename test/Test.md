@@ -15,6 +15,7 @@
                Centre header
                Inner header
 
+% TitlePage
 % Subject    : Subject
 % Title      : Title
 % Subtitle   : Subtitle
