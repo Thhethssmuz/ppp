@@ -28,7 +28,7 @@
 % Date       : \today
 % Keywords   : keyword1, keyword2
 
-% IncludeHead:
+% IncludeHead::
   \usepackage{cprotect}
 
 # Abstract {.abstract}

@@ -1,4 +1,4 @@
-% IncludeHead:
+% IncludeHead::
   \usepackage{printlen}
   \newcommand\upt[1]{\uselengthunit{pt}\printlength{#1}}
   \newcommand\uem[1]{\uselengthunit{em}\printlength{#1}}
