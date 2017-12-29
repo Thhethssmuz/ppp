@@ -106,7 +106,7 @@ mkFloat parent inheritedWidth this@(Div (i,cs,as) bs) = do
   when (isNothing parent && span && not float) $ do
     tex $ "\\end{pppmulticol}"
 
-  when (isJust parent) $ do
+  when (box && isJust parent) $ do
     -- tex $ "\\cprotect\\fbox{\\begin{minipage}[" ++ y ++ "]{" ++ showF width ++ "\\linewidth-2\\fboxsep-2\\fboxrule}%"
     tex $ "\\begin{minipage}[" ++ y ++ "]{" ++ showF width ++ "\\linewidth}"
 
@@ -122,7 +122,7 @@ mkFloat parent inheritedWidth this@(Div (i,cs,as) bs) = do
   when (box && Just env /= penv) $ do
     tex $ "\\begin{" ++ env' ++ "}[" ++ pos ++ "]"
 
-  unless (null x) $ do
+  when (box && not (null x)) $ do
     tex $ x
 
   when (isJust caption && style == "plaintop") $ do
@@ -185,7 +185,7 @@ mkFloat parent inheritedWidth this@(Div (i,cs,as) bs) = do
     tex $ "\\end{minipage}"
     tex $ "\\end{pppwrapfloat}"
 
-  when (isJust parent) $ do
+  when (box && isJust parent) $ do
     -- tex $ "\\end{minipage}}"
     tex $ "\\end{minipage}"
 
