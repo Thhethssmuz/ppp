@@ -1,17 +1,25 @@
 module PreProcess (include) where
 
+import Reader
+
 import Control.Monad (when)
 import Data.Char (isSpace, toLower)
 import Data.List (intercalate, groupBy)
-import Data.Maybe (fromMaybe)
 import System.Directory (doesFileExist)
-import Text.Pandoc.Shared (splitBy)
+import Text.HTML.TagSoup (Tag(..), renderTags)
 
 trim :: String -> String
 trim = f . f where f = reverse . dropWhile isSpace
 
 unlines' :: [String] -> String
 unlines' = intercalate "\n"
+
+lines' :: String -> [String]
+lines' = foldr f [] . lines
+  where
+    f y (x:xs) | not (null y) && last y == '\\' = (y ++ '\n':x) : xs
+               | otherwise = y : (x:xs)
+    f y xs     = y:xs
 
 isMacro (x:xs) = x == '%'
 isMacro _      = False
@@ -29,31 +37,33 @@ groupBlocks
 
 processMacro :: String -> IO String
 processMacro macroBlock = do
-  let block  = drop 1 macroBlock
+  let block    = trim $ drop 1 macroBlock
+      isSep c  = c == ':' || isSpace c
+      notSep   = not . isSep
 
-      macro   = trim . takeWhile (/= ':') $ block
-      content = (\xs -> if null xs then Nothing else Just . trim $ tail xs)
-              . dropWhile (/= ':') $ block
+      macro    = takeWhile notSep $ block
+      sep      = length . takeWhile (== ':') . dropWhile isSpace
+               . dropWhile notSep $ block
+      content  = dropWhile isSpace . dropWhile (== ':')
+               . dropWhile isSpace . dropWhile notSep $ block
 
-      lines   = fromMaybe []
-              . fmap (map trim . splitBy (flip elem "\n;"))
-              $ content
+      rawLines = lines' $ content
+      indent   = foldl min 80 . map (length . takeWhile isSpace) . drop 1
+               . filter (not . all isSpace) $ rawLines
+      lines    = take 1 rawLines ++ map (drop indent) (drop 1 rawLines)
+      trimmed  = filter (not . null) . map trim $ lines
 
-      cs      = ["ppp-macro"]
-      as      = [("macro", macro), ("lines", show $ length lines)] ++
-                zipWith (\l i -> ("l" ++ show i, l)) lines [0..]
-
-      attr    = "{" ++
-                (intercalate " " $ map (('.':)) cs) ++ " " ++
-                (intercalate " " $ map (\(k,v) -> k ++ "=" ++ show v) as) ++
-                "}"
-      inner   = concat
-              . zipWith (\l i -> "\n[" ++ l ++ "]{.line}") lines
-              $ [0..]
+      attr     = renderTags . (:[TagClose "div"]) . TagOpen "div" $
+                 [ ("class", "ppp-macro")
+                 , ("macro", macro)
+                 , ("sep", show sep)
+                 , ("lines", show $ length lines)
+                 ] ++ zipWith (\l i -> ("l" ++ show i, l)) lines [0..]
 
   if map toLower macro == "include"
-    then fmap ((++"\n\n") . concatMap ("\n\n"++)) . mapM include $ lines
-    else return $ "\n\n:::" ++ attr ++ inner ++ "\n:::\n\n"
+    then fmap ((++"\n\n") . concatMap ("\n\n"++)) . mapM include $ trimmed
+    else return $ "\n\n" ++ attr ++ "\n\n"
+
 
 processMacros :: [String] -> IO String
 processMacros [] = return ""
