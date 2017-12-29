@@ -1,11 +1,14 @@
 # Macros
 
-ppp preprocessing macros are used to include other files, change the flow of the document and set document metadata. Macros begin with the character `%` and must start on a new line, followed by the macro name. Macros taking an argument must be followed by a `:` and its argument and for macros taking multiple, or lists of, arguments the arguments are separated by either `;` or a newline.
+ppp preprocessing macros are used to include other files, change the flow of the document and set document metadata. Macros begin with the character `%` and must start on a new line, followed by the macro name. Macros taking an argument must be followed by a `:` and its argument and for macros taking multiple arguments the arguments are separated by newlines. Empty lines are trimmed.
 
-    % MacroName : Argument 1; Argument 2
+    % MacroName : Argument 1
+                  Argument 2
                   Argument 3
 
 All macro names are case insensitive and ignore leading and trailing spaces.
+
+Alternatively arguments may be interpreted as markdown blocks by using the separator `::` instead of `:`, though not all macros support this.
 
 ## Main
 
