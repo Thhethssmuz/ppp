@@ -16,6 +16,9 @@
                Inner header
 
 % TitlePage
+% TitleHead  : Left titlehead
+               Centre titlehead
+               Right titlehead
 % Subject    : Subject
 % Title      : Title
 % Subtitle   : Subtitle
