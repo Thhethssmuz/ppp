@@ -46,6 +46,15 @@ setGlobal key val = do
     Just _  -> warn $ "duplicate instances of global macro `" ++ key ++ "'"
     Nothing -> modify $ setMeta key val
 
+setDefault :: ToMetaValue a => String -> a -> MetaS Bool
+setDefault key val = do
+  prev <- gets $ lookupMeta key
+  case prev of
+    Just _  -> return True
+    Nothing -> do
+               modify $ setMeta key val
+               return False
+
 addGlobal :: ToMetaValue a => String -> a -> MetaS ()
 addGlobal key = modify . addMetaField key . toMetaValue
 
@@ -376,6 +385,14 @@ macro pre block m = case map toLower $ macroName m of
                          else void . warn $ "unknown macro `" ++ macroName m ++ "'"
 
 
+setDefaults :: [Block] -> MetaS [Block]
+setDefaults bs = do
+  a <- setDefault "book" False
+  b <- setDefault "report" False
+  setDefault "article" $ if a || b then False else True
+  setDefault "documentclass" $ MetaString "scrartcl"
+
+  return bs
 
 processMacro :: Bool -> Block -> MetaS Block
 processMacro pre block@(Div (i,cs,as) bs) =
@@ -392,5 +409,5 @@ processMacro _ block = return block
 
 processMacros :: Bool -> Pandoc -> IO Pandoc
 processMacros b (Pandoc meta bs) = do
-  (bs', meta') <- runStateT (walkM (processMacro b) bs) meta
+  (bs', meta') <- runStateT (setDefaults =<< walkM (processMacro b) bs) meta
   return $ Pandoc meta' bs'
