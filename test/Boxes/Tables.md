@@ -152,6 +152,106 @@ Table: Caption {.long.normalise column-widths="10% 90%" style="plaintop" width=1
 
 \cleardoublepage
 
+Tables with and without headers
+
+Simple tables
+
+------- ------- -------
+   1      a        A
+   2      b        B
+------- ------- -------
+
+ **A**   **B**   **C**
+------- ------- -------
+   1      a        A
+   2      b        B
+
+Multi line tables
+
+------- ------- -------
+   1      a        A
+
+   2      b        B
+------- ------- -------
+
+-----------------------
+ **A**   **B**   **C**
+------- ------- -------
+   1      a        A
+
+   2      b        B
+-----------------------
+
+Pipe tables
+
+|       |       |       |
+|:------|:------|:------|
+| 1     | a     | A     |
+| 2     | b     | B     |
+
+| **A** | **B** | **C** |
+|:------|:------|:------|
+| 1     | a     | A     |
+| 2     | b     | B     |
+
+\newpage
+
+`.long` tables with and without headers
+
+Simple tables
+
+------- ------- -------
+   1      a        A
+   2      b        B
+------- ------- -------
+
+Table: {.long}
+
+ **A**   **B**   **C**
+------- ------- -------
+   1      a        A
+   2      b        B
+
+Table: {.long}
+
+Multi line tables
+
+------- ------- -------
+   1      a        A
+
+   2      b        B
+------- ------- -------
+
+Table: {.long}
+
+-----------------------
+ **A**   **B**   **C**
+------- ------- -------
+   1      a        A
+
+   2      b        B
+-----------------------
+
+Table: {.long}
+
+Pipe tables
+
+|       |       |       |
+|:------|:------|:------|
+| 1     | a     | A     |
+| 2     | b     | B     |
+
+Table: {.long}
+
+| **A** | **B** | **C** |
+|:------|:------|:------|
+| 1     | a     | A     |
+| 2     | b     | B     |
+
+Table: {.long}
+
+\cleardoublepage
+
 Normal and `.long` table alignment should be roughly equal.
 
  **A**   **B**   **C**
