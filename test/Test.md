@@ -66,6 +66,7 @@ Multiple `.abstract` sections is supported.
 % Include: test/Boxes/Figures.md
 % Include: test/Boxes/Tables.md
 % Include: test/Boxes/Programs.md
+% Include: test/Boxes/Other.md
 % Include: test/Boxes/Multi.md
 % Include: test/Boxes/Wrap.md
 % Include: test/Boxes/Float.md
