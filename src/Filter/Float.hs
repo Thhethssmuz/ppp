@@ -135,6 +135,7 @@ mkFloat parent inheritedWidth this@(Div (i,cs,as) bs) = do
   when (isNothing parent) $ do
     -- tex $ "\\cprotect\\fbox{\\begin{minipage}[" ++ y ++ "]{" ++ showF width' ++ "\\linewidth-2\\fboxsep-2\\fboxrule}%"
     tex $ "\\begin{minipage}[" ++ y ++ "]{" ++ showF width' ++ "\\linewidth}"
+    tex $ x
     tex $ "\\begingroup"
     tex $ "\\setlength{\\intextsep}{0pt}"
 

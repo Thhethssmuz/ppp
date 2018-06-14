@@ -220,27 +220,32 @@ mkTable env (Table caption al ws head rows) (i,cs,as) = do
   when (long && span) . tex $ "\\end{pppmulticol}"
   when long . tex $ "\\vspace{\\intextsep}"
   when (long && styleT) $ mkLongCaption env numb style i caption
-  tex $ "\\begin{longtable*}{@{}" ++ align ++ "@{}}"
 
-  unless (tstyle == "none") . tex $ "\\toprule"
+  if long
+    then tex $ "\\begin{longtable*}{@{}" ++ align ++ "@{}}"
+    else tex $ "\\begin{tabular}{@{}" ++ align ++ "@{}}"
 
-  unless (all null head) $ do
+  when (long && tstyle /= "none") . tex $ "\\toprule"
+
+  when (long && not (all null head)) $ do
     mkRow al widths head
     unless (tstyle == "none") . tex $ "\\midrule"
 
-  tex $ "\\endfirsthead"
-  unless (tstyle == "none") .tex $ "\\toprule"
+  when long . tex $ "\\endfirsthead"
+  unless (tstyle == "none") . tex $ "\\toprule"
 
   mkRow al widths head
 
   unless (tstyle == "none") . tex $ "\\midrule"
-  tex $ "\\endhead"
+  when long . tex $ "\\endhead"
 
   mapM_ (mkRow al widths) rows
 
   unless (tstyle == "none") . tex $ "\\bottomrule"
 
-  tex $ "\\end{longtable*}"
+  if long
+    then tex $ "\\end{longtable*}"
+    else tex $ "\\end{tabular}"
   when (long && styleB) $ mkLongCaption env numb style i caption
   when (long && span) . tex $ "\\begin{pppmulticol}"
 
