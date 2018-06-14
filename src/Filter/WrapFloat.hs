@@ -179,7 +179,7 @@ mkColumn a w bs s = do
       w' = showD w
 
   when (w > 0 && not (isInfinite w)) $ do
-    tex $ "\\begin{minipage}[b]{" ++ w' ++ "\\columnwidth-" ++ show s ++ "\\tabcolsep}"
+    tex $ "\\begin{minipage}[t]{" ++ w' ++ "\\columnwidth-" ++ show s ++ "\\tabcolsep}"
     tex $ a' ++ "\\strut"
 
   blocks bs
