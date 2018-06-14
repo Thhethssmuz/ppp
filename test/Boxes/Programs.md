@@ -240,3 +240,211 @@ main = do
 Program: Caption {.long style=plaintop}
 
 \lipsum[2]
+
+\cleardoublepage
+
+Normal and `.long` table alignment should be roughly equal.
+
+```
+main :: IO ()
+main = do
+  putStrLn "hello world"
+```
+
+Table: {align="top left"}
+
+```
+main :: IO ()
+main = do
+  putStrLn "hello world"
+```
+
+Table: {align="top centre"}
+
+```
+main :: IO ()
+main = do
+  putStrLn "hello world"
+```
+
+Table: {align="top right"}
+
+```
+main :: IO ()
+main = do
+  putStrLn "hello world"
+```
+
+Table: {.normalise align="top left" width=50%}
+
+```
+main :: IO ()
+main = do
+  putStrLn "hello world"
+```
+
+Table: {.normalise align="top centre" width=50%}
+
+```
+main :: IO ()
+main = do
+  putStrLn "hello world"
+```
+
+Table: {.normalise align="top right" width=50%}
+
+\newpage
+
+Normal and `.long` table alignment should be roughly equal.
+
+```
+main :: IO ()
+main = do
+  putStrLn "hello world"
+```
+
+Table: {.long align="top left"}
+
+```
+main :: IO ()
+main = do
+  putStrLn "hello world"
+```
+
+Table: {.long align="top centre"}
+
+```
+main :: IO ()
+main = do
+  putStrLn "hello world"
+```
+
+Table: {.long align="top right"}
+
+```
+main :: IO ()
+main = do
+  putStrLn "hello world"
+```
+
+Table: {.long.normalise align="top left" width=50%}
+
+```
+main :: IO ()
+main = do
+  putStrLn "hello world"
+```
+
+Table: {.long.normalise align="top centre" width=50%}
+
+```
+main :: IO ()
+main = do
+  putStrLn "hello world"
+```
+
+Table: {.long.normalise align="top right" width=50%}
+
+\cleardoublepage
+
+Normal and `.long` table alignment should be roughly equal.
+
+```haskell
+main :: IO ()
+main = do
+  putStrLn "hello world"
+```
+
+Table: {align="top left"}
+
+```haskell
+main :: IO ()
+main = do
+  putStrLn "hello world"
+```
+
+Table: {align="top centre"}
+
+```haskell
+main :: IO ()
+main = do
+  putStrLn "hello world"
+```
+
+Table: {align="top right"}
+
+```haskell
+main :: IO ()
+main = do
+  putStrLn "hello world"
+```
+
+Table: {.normalise align="top left" width=50%}
+
+```haskell
+main :: IO ()
+main = do
+  putStrLn "hello world"
+```
+
+Table: {.normalise align="top centre" width=50%}
+
+```haskell
+main :: IO ()
+main = do
+  putStrLn "hello world"
+```
+
+Table: {.normalise align="top right" width=50%}
+
+\newpage
+
+Normal and `.long` table alignment should be roughly equal.
+
+```haskell
+main :: IO ()
+main = do
+  putStrLn "hello world"
+```
+
+Table: {.long align="top left"}
+
+```haskell
+main :: IO ()
+main = do
+  putStrLn "hello world"
+```
+
+Table: {.long align="top centre"}
+
+```haskell
+main :: IO ()
+main = do
+  putStrLn "hello world"
+```
+
+Table: {.long align="top right"}
+
+```haskell
+main :: IO ()
+main = do
+  putStrLn "hello world"
+```
+
+Table: {.long.normalise align="top left" width=50%}
+
+```haskell
+main :: IO ()
+main = do
+  putStrLn "hello world"
+```
+
+Table: {.long.normalise align="top centre" width=50%}
+
+```haskell
+main :: IO ()
+main = do
+  putStrLn "hello world"
+```
+
+Table: {.long.normalise align="top right" width=50%}

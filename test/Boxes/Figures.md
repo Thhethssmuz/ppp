@@ -64,3 +64,16 @@ Figure: {width=100%}
 :::
 
 \lipsum[2]
+
+
+\cleardoublepage
+
+Figure alignment.
+
+\newpage
+
+![](test/Test.jpg){align="top left" width=50%}
+
+![](test/Test.jpg){align="top centre" width=50%}
+
+![](test/Test.jpg){align="top right" width=50%}

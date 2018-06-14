@@ -123,3 +123,121 @@ Normal and `.long` table appearance should be roughly equal.
 Table: Caption {.long style="plaintop"}
 
 \lipsum[2]
+
+\cleardoublepage
+
+Normal and `.long` table appearance should be roughly equal.
+
+| **A** | **Long content** |
+|:------|:-----------------|
+| 1     | \lipsum[1]       |
+| 2     | \lipsum[2]       |
+
+Table: Caption {.normalise column-widths="10% 90%" style="plaintop" width=100%}
+
+\lipsum[2]
+
+\newpage
+
+Normal and `.long` table appearance should be roughly equal.
+
+| **A** | **Long Content** |
+|:------|:-----------------|
+| 1     | \lipsum[1]       |
+| 2     | \lipsum[2]       |
+
+Table: Caption {.long.normalise column-widths="10% 90%" style="plaintop" width=100%}
+
+\lipsum[2]
+
+\cleardoublepage
+
+Normal and `.long` table alignment should be roughly equal.
+
+ **A**   **B**   **C**
+------- ------- -------
+   1      a        A
+   2      b        B
+
+Table: {align="top left"}
+
+ **A**   **B**   **C**
+------- ------- -------
+   1      a        A
+   2      b        B
+
+Table: {align="top centre"}
+
+ **A**   **B**   **C**
+------- ------- -------
+   1      a        A
+   2      b        B
+
+Table: {align="top right"}
+
+ **A**   **B**   **C**
+------- ------- -------
+   1      a        A
+   2      b        B
+
+Table: {.normalise align="top left" width=50%}
+
+ **A**   **B**   **C**
+------- ------- -------
+   1      a        A
+   2      b        B
+
+Table: {.normalise align="top centre" width=50%}
+
+ **A**   **B**   **C**
+------- ------- -------
+   1      a        A
+   2      b        B
+
+Table: {.normalise align="top right" width=50%}
+
+\newpage
+
+Normal and `.long` table alignment should be roughly equal.
+
+ **A**   **B**   **C**
+------- ------- -------
+   1      a        A
+   2      b        B
+
+Table: {.long align="top left"}
+
+ **A**   **B**   **C**
+------- ------- -------
+   1      a        A
+   2      b        B
+
+Table: {.long align="top centre"}
+
+ **A**   **B**   **C**
+------- ------- -------
+   1      a        A
+   2      b        B
+
+Table: {.long align="top right"}
+
+ **A**   **B**   **C**
+------- ------- -------
+   1      a        A
+   2      b        B
+
+Table: {.long.normalise align="top left" width=50%}
+
+ **A**   **B**   **C**
+------- ------- -------
+   1      a        A
+   2      b        B
+
+Table: {.long.normalise align="top centre" width=50%}
+
+ **A**   **B**   **C**
+------- ------- -------
+   1      a        A
+   2      b        B
+
+Table: {.long.normalise align="top right" width=50%}
