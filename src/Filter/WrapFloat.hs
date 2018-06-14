@@ -234,9 +234,9 @@ mkTable env (Table caption al ws head rows) (i,cs,as) = do
   when long . tex $ "\\endfirsthead"
   unless (tstyle == "none") . tex $ "\\toprule"
 
-  mkRow al widths head
+  unless (all null head) $ mkRow al widths head
 
-  unless (tstyle == "none") . tex $ "\\midrule"
+  unless (tstyle == "none" || all null head) . tex $ "\\midrule"
   when long . tex $ "\\endhead"
 
   mapM_ (mkRow al widths) rows
