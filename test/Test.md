@@ -22,7 +22,10 @@
 % Subject    : Subject
 % Title      : Title
 % Subtitle   : Subtitle
-% Author     : Name of Author
+% Author     : Name of First Author
+               _Professor of Triviality_
+               University of Nowheresville
+% Author     : Name of Second Author
                _Professor of Triviality_
                University of Nowheresville
 % Date       : \today
